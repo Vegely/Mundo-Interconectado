@@ -1,0 +1,188 @@
+\documentclass[12pt,a4paper]{article}
+
+% Paquetes esenciales para idioma y codificación
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-tabla,es-noquoting]{babel}
+
+% Paquetes para matemáticas e imágenes
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{tikz}
+\usepackage{tikz-3dplot}
+\usetikzlibrary{3d, calc}
+
+
+% Paquetes para insertar código
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Configuración de listings para Python
+\lstset{
+	language=Python,
+	basicstyle=\ttfamily\footnotesize,
+	keywordstyle=\color{blue},
+	stringstyle=\color{red},
+	commentstyle=\color{green!60!black},
+	numbers=left,
+	numberstyle=\tiny\color{gray},
+	stepnumber=1,
+	breaklines=true,
+	frame=single,
+	showstringspaces=false
+}
+
+% Paquete para hipervínculos y formato de página
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{
+	a4paper,
+	left=2.5cm,
+	right=2.5cm,
+	top=3cm,
+	bottom=3cm,
+}
+
+% Información del documento
+\title{\textbf{Propuesta de Trabajo para MINT}\\
+	Análisis de la Red de Dependencias de PyPI}
+\author{Bogurad Barañski Barañska \and Jorge Bengoa Pinedo}
+\date{\today}
+
+\begin{document}
+	
+	\maketitle
+	
+	\section{Descripción de la Red Propuesta}
+	Para el trabajo final de la asignatura MINT, proponemos analizar la red de dependencias del ecosistema de paquetes de Python (PyPI). La red consistirá en un grafo dirigido donde los nodos representan paquetes de software (ej. \textit{pandas}, \textit{tensorflow}, \textit{django}) y las aristas dirigidas representan las dependencias entre ellos (un paquete requiere de otro para su instalación o funcionamiento). Se ha fijado un límite máximo de exploración de 10.000 nodos.
+	
+	\section{Construcción de la Red}
+	La red se construirá mediante un proceso de extracción de datos automatizado (\textit{web scraping}) haciendo uso de la API pública en formato JSON de PyPI. Partiendo de una lista diversa de 10 paquetes semilla representativos de distintas áreas (ciencia de datos, desarrollo web, DevOps, etc.), se aplicará un algoritmo de búsqueda iterativo. Por cada paquete, se extraerán sus dependencias directas de forma asíncrona, añadiéndolas a la cola de procesamiento hasta alcanzar el volumen deseado para el estudio.
+	
+	\section{Herramientas a Utilizar}
+	Para la realización de este proyecto se emplearán las siguientes herramientas:
+	\begin{itemize}
+		\item \textbf{Python o R}: Lenguajes de programación principales para la recolección, estructuración de datos y procesado de los grafos.
+		\item \textbf{Gephi}: Herramienta de software que se utilizará en las fases preliminares del estudio.
+	\end{itemize}
+	
+	\section{Objetivos del Estudio}
+	Los objetivos principales de este análisis son:
+	\begin{enumerate}
+		\item Obtener una visión macroscópica de la estructura del ecosistema de desarrollo de Python.
+		\item Identificar los paquetes hub o nodos centrales que actúan como dependencias críticas transversales para la mayoría de los proyectos.
+		\item Analizar la distribución de grados de la red para comprobar empíricamente si sigue un modelo de red libre de escala.
+		\item Detectar comunidades o clústeres de paquetes que tienden a utilizarse conjuntamente dentro de dominios de desarrollo específicos.
+	\end{enumerate}
+	
+	\newpage
+	\appendix
+	\section{Anexo: Código de Extracción (Python)}
+	A continuación se adjunta el script utilizado para la descarga asíncrona de los datos desde la API de PyPI y la consiguiente generación de los archivos CSV y GraphML.
+	
+\begin{lstlisting}
+	import asyncio
+	import aiohttp
+	import pandas as pd
+	import networkx as nx
+	import re
+	import time
+	
+	# A diverse list of starting points 
+	SEED_PACKAGES = [
+	"pandas",       # Data Science
+	"tensorflow",   # Machine Learning / AI
+	"django",       # Heavy Web Applications
+	"fastapi",      # Lightweight Web APIs
+	"kivy",         # Mobile/Desktop App UI
+	"PyQt5",        # Desktop Applications
+	"pygame",       # Game Development
+	"ansible",      # DevOps and Server Management
+	"pytest",       # Testing framework
+	"jupyter"       # Interactive computing
+	]
+	
+	MAX_NODES = 10000
+	MAX_CONCURRENT_REQUESTS = 40  
+	
+	async def fetch_dependencies(session, pkg_name, semaphore):
+	"""Fetches JSON data safely using a semaphore to prevent server bans."""
+	url = f"https://pypi.org/pypi/{pkg_name}/json"
+	
+	async with semaphore:
+	for attempt in range(3):
+	try:
+	async with session.get(url, timeout=15) as response:
+	if response.status == 200:
+	data = await response.json()
+	return pkg_name, data.get("info", {}).get("requires_dist")
+	elif response.status == 429: 
+	await asyncio.sleep(2 ** attempt) 
+	continue
+	else:
+	return pkg_name, None
+	except Exception:
+	await asyncio.sleep(1)
+	return pkg_name, None 
+	
+	async def main():
+	edges = []
+	visited = set()
+	
+	# Initialize the queue with ALL of our seed packages
+	queue = set(SEED_PACKAGES)
+	
+	print(f"--- Starting multi-seed crawl up to {MAX_NODES} nodes ---")
+	print(f"Seeds: {', '.join(SEED_PACKAGES)}")
+	start_time = time.time()
+	
+	semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
+	connector = aiohttp.TCPConnector(limit=MAX_CONCURRENT_REQUESTS)
+	
+	async with aiohttp.ClientSession(connector=connector) as session:
+	while queue and len(visited) < MAX_NODES:
+	batch_size = min(MAX_CONCURRENT_REQUESTS * 2, MAX_NODES - len(visited))
+	current_batch = [queue.pop() for _ in range(min(batch_size, len(queue)))]
+	
+	visited.update(current_batch)
+	
+	tasks = [fetch_dependencies(session, pkg, semaphore) for pkg in current_batch]
+	results = await asyncio.gather(*tasks)
+	
+	for current_pkg, requires_dist in results:
+	if requires_dist:
+	for dep in requires_dist:
+	dep_name = re.split(r'[\s=><(;]', dep)[0].strip()
+	
+	if dep_name and "extra" not in dep_name:
+	edges.append({"Source": current_pkg, "Target": dep_name})
+	
+	if dep_name not in visited:
+	queue.add(dep_name)
+	
+	print(f"Nodes fully processed: {len(visited)} / {MAX_NODES}... (Queue size: {len(queue)})")
+	
+	# Data Export
+	print(f"\nScraping complete in {time.time() - start_time:.2f} seconds.")
+	
+	if edges:
+	df = pd.DataFrame(edges).drop_duplicates()
+	df.to_csv("pypi_multiseed_10k.csv", index=False)
+	print(f"Saved CSV: 'pypi_multiseed_10k.csv' with {len(df)} total edges.")
+	
+	G = nx.from_pandas_edgelist(df, source='Source', target='Target', create_using=nx.DiGraph())
+	nx.write_graphml(G, "pypi_multiseed_10k.graphml")
+	print(f"Saved GraphML: 'pypi_multiseed_10k.graphml' with {G.number_of_nodes()} nodes.")
+	else:
+	print("\nFailed to find dependencies.")
+	
+	if __name__ == "__main__":
+	try:
+	asyncio.run(main())
+	except KeyboardInterrupt:
+	print("\nProcess interrupted. Note: Run the script fully to save the files.")
+\end{lstlisting}
+
+\end{document}
