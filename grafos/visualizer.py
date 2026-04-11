@@ -1,13 +1,16 @@
 import colorsys
+import datetime
+import os
 
 import igraph as ig
 import numpy as np
+from PIL import Image
 from vispy import app, scene
 from vispy.color import get_colormap
 
 app.use_app('glfw')
 
-# ── Physics Parameters ────────────────────────────────────────────────────────
+#Physics Parameters 
 PHYSICS = {
     "spring_strength": 0.002,
     "outward_push":    200.0,
@@ -18,7 +21,7 @@ PHYSICS = {
     "step_multiplier": 1.0,
 }
 
-# ── Coloring helpers ──────────────────────────────────────────────────────────
+#Coloring helpers  
 def normalize_log(arr):
     arr = np.array(arr, dtype=np.float64)
     arr = np.log1p(np.clip(arr, 0, None))
@@ -58,16 +61,14 @@ def cmap_ice(norm):
     ])
 
 def cmap_flat(norm):
-    """8 — every node the same soft blue."""
     return np.tile(np.array([0.45, 0.60, 1.0, 1.0], dtype=np.float32), (len(norm), 1))
 
 def get_colors(metrics, mode):
     norm, cmap, _ = metrics[mode]
     return cmap(norm) if callable(cmap) else vispy_cmap(cmap, norm)
 
-# ── Cycle palette & per-cycle node colors ─────────────────────────────────────
+#Cycle palette & per-cycle node colors              
 def generate_cycle_palette(n_cycles, saturation=0.82, value=0.95):
-    """Evenly spaced hues across the HSV wheel for n_cycles distinct colors."""
     if n_cycles == 0:
         return np.zeros((1, 4), dtype=np.float32)
     palette = np.zeros((n_cycles, 4), dtype=np.float32)
@@ -78,7 +79,6 @@ def generate_cycle_palette(n_cycles, saturation=0.82, value=0.95):
     return palette
 
 def node_colors_mode7(cycle_id, cycle_palette):
-    """Per-node RGBA: dim grey if not in any cycle, else unique cycle hue."""
     n   = len(cycle_id)
     out = np.tile(np.array([0.10, 0.10, 0.12, 1.0], dtype=np.float32), (n, 1))
     mask = cycle_id >= 0
@@ -87,20 +87,14 @@ def node_colors_mode7(cycle_id, cycle_palette):
     return out
 
 def line_vertex_colors_mode7(pos_len, cycle_id, cycle_palette):
-    """
-    Per-vertex color array for the line visual (one RGBA per node position).
-    Cycle nodes get their cycle hue; non-cycle nodes get transparent dark grey
-    so their attached lines fade to invisible at the non-cycle end.
-    """
     out = np.tile(np.array([0.10, 0.10, 0.12, 0.0], dtype=np.float32), (pos_len, 1))
     mask = cycle_id >= 0
     if mask.any():
         c = cycle_palette[cycle_id[mask] % len(cycle_palette)].copy()
-        c[:, 3] = 0.35          # intra-cycle edge alpha
+        c[:, 3] = 0.35       
         out[mask] = c
     return out
 
-# ── SCC cycle computation ─────────────────────────────────────────────────────
 def compute_scc_data(g):
     print("  · strongly connected components …")
     scc         = g.connected_components(mode="strong")
@@ -117,26 +111,14 @@ def compute_scc_data(g):
     if n_cycles:
         avg     = sum(len(c) for c in cycles) / n_cycles
         biggest = len(cycles[0])
-        print(f"    {n_cycles} cycles found — biggest={biggest}, avg={avg:.1f}")
+        print(f"    {n_cycles} cycles found")
     else:
-        print("    No dependency cycles found!")
+        print("    No dependency cycles found")
 
     cycle_palette = generate_cycle_palette(n_cycles)
     return cycle_id, cycle_sizes, cycles, cycle_palette
 
-# ── Edge masks for mode 7 ─────────────────────────────────────────────────────
 def compute_mode7_edge_masks(edges, cycle_id):
-    """
-    Partition all edges into three groups for mode-7 rendering:
-      intra  — both endpoints in the SAME cycle   → coloured by cycle hue
-      inter  — endpoints in DIFFERENT cycles       → bright bridge lines
-      other  — at least one endpoint not in cycle  → hidden in mode 7
-
-    Note: a true "shortest path visiting all cycles" (Steiner / TSP) is
-    NP-hard and infeasible for graphs with thousands of cycles or a single
-    SCC of 3 500+ nodes. Showing the raw inter-cycle edges in the graph
-    gives the same spatial insight without the combinatorial explosion.
-    """
     src_cid = cycle_id[edges[:, 0]]
     tgt_cid = cycle_id[edges[:, 1]]
 
@@ -151,7 +133,14 @@ def compute_mode7_edge_masks(edges, cycle_id):
           f"hidden={((~intra_mask) & (~inter_mask)).sum():,}")
     return intra_edges, inter_edges
 
-# ── Metric precomputation ─────────────────────────────────────────────────────
+#Cycle palette & per-cycle node colors              
+def generate_community_colors(membership, n_communities, saturation=0.75, value=0.92):
+    palette = generate_cycle_palette(n_communities, saturation, value)
+    out = np.zeros((len(membership), 4), dtype=np.float32)
+    out[:] = palette[membership % len(palette)]
+    return out
+
+#Metric precomputation                     
 def precompute_metrics(g):
     print("  · degree …")
     in_deg  = np.array(g.indegree(),  dtype=np.float64)
@@ -162,18 +151,21 @@ def precompute_metrics(g):
     btwn = np.array(g.betweenness(directed=True))
     print("  · closeness …")
     clos = np.nan_to_num(np.array(g.closeness()), nan=0.0)
-
     cycle_id, cycle_sizes, cycles, cycle_palette = compute_scc_data(g)
-
-    # mode 7: dummy norm (coloring is handled separately via cycle_palette)
     in_cycle_norm = (cycle_id >= 0).astype(np.float32)
-    # mode 8: uniform value (cmap_flat ignores it)
-    flat_norm     = np.full(g.vcount(), 0.5, dtype=np.float32)
 
-    # cmap_cycle_highlight is now a no-op placeholder;
-    # actual colours are computed in node_colors_mode7()
+    print("  · community detection (Louvain) …")
+    ug         = g.as_undirected(combine_edges="first")
+    comm       = ug.community_multilevel()
+    membership = np.array(comm.membership, dtype=np.int32)
+    n_comm     = membership.max() + 1
+    print(f"    {n_comm} communities found")
+
     def cmap_cycle_highlight(norm):
         return node_colors_mode7(cycle_id, cycle_palette)
+
+    def cmap_community(norm):
+        return generate_community_colors(membership, n_comm)
 
     metrics = {
         "pagerank":     (normalize_log(pr),               "plasma",          "PageRank"),
@@ -181,24 +173,25 @@ def precompute_metrics(g):
         "out_degree":   (normalize_log(out_deg),          "viridis",         "Out-Degree (dependencies)"),
         "total_degree": (normalize_log(in_deg + out_deg), "magma",           "Total Degree"),
         "betweenness":  (normalize_log(btwn),             cmap_fire,         "Betweenness Centrality"),
-        "closeness":    (normalize_linear(clos),          cmap_ice,          "Closeness Centrality"),
+        "closeness":    (normalize_log(clos),          cmap_ice,          "Closeness Centrality"),
         "cycle_hl":     (in_cycle_norm,                   cmap_cycle_highlight, "Cycle Highlight (per-cycle color)"),
-        "flat":         (flat_norm,                       cmap_flat,         "Flat (uniform)"),
+        "community":    (np.zeros(g.vcount(), dtype=np.float32), cmap_community, "Communities (Louvain)"),
     }
-    metrics["_cycle_id"]      = cycle_id
-    metrics["_cycle_sizes"]   = cycle_sizes
-    metrics["_cycles"]        = cycles
-    metrics["_cycle_palette"] = cycle_palette
+    metrics["_cycle_id"]           = cycle_id
+    metrics["_cycle_sizes"]        = cycle_sizes
+    metrics["_cycles"]             = cycles
+    metrics["_cycle_palette"]      = cycle_palette
+    metrics["_community"]          = membership
     return metrics
 
 COLOR_KEYS = [
     "pagerank", "in_degree", "out_degree", "total_degree",
-    "betweenness", "closeness", "cycle_hl", "flat",
+    "betweenness", "closeness", "cycle_hl", "community",
 ]
 KEY_BINDS = list("12345678")
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+#Main          
 def main():
     print("Loading graph data…")
     g = ig.Graph.Read_GraphML("pypi_multiseed_10k.graphml")
@@ -230,7 +223,7 @@ def main():
     invert_state = {"active": False}
     colors       = get_colors(metrics, color_state["mode"])
 
-    # ── Query screen resolution via GLFW before opening the window ────────────
+    #Query screen resolution via GLFW before opening the window         ─
     import glfw as _glfw
     _glfw.init()
     _vm   = _glfw.get_video_mode(_glfw.get_primary_monitor())
@@ -238,7 +231,7 @@ def main():
     SCR_H = _vm.size.height
     print(f"  screen: {SCR_W}×{SCR_H}")
 
-    # ── Canvas ────────────────────────────────────────────────────────────────
+    #Canvas           
     canvas = scene.SceneCanvas(
         keys='interactive', title='Real-Time Physics Graph',
         bgcolor='#0a0a0c', size=(SCR_W, SCR_H), decorate=False, show=True
@@ -247,8 +240,6 @@ def main():
     view = canvas.central_widget.add_view()
     view.camera = 'panzoom'
 
-    # ── Line visuals (three layers) ───────────────────────────────────────────
-    # Layer 0: all edges — used in every mode EXCEPT mode 7
     lines_all = scene.visuals.Line(
         pos=pos, connect=edges, color=(1.0, 1.0, 1.0, 0.05),
         method='gl', parent=view.scene
@@ -256,8 +247,6 @@ def main():
     lines_all.order = 0
     lines_all.set_gl_state(depth_test=False, blend=True)
 
-    # Layer 1: intra-cycle edges — only visible in mode 7
-    # Vertex colours: each node gets its cycle hue so edges blend between them.
     _intra_vc = line_vertex_colors_mode7(len(pos), cycle_id, cycle_palette)
     lines_intra = scene.visuals.Line(
         pos=pos,
@@ -269,25 +258,23 @@ def main():
     lines_intra.set_gl_state(depth_test=False, blend=True)
     lines_intra.visible = False
 
-    # Layer 2: inter-cycle bridge edges — only visible in mode 7
-    # Bright white/gold so cross-cycle bridges stand out clearly.
     lines_inter = scene.visuals.Line(
         pos=pos,
         connect=inter_edges if len(inter_edges) else np.zeros((0, 2), dtype=np.uint32),
-        color=(1.0, 0.85, 0.20, 0.55),   # warm gold, semi-transparent
+        color=(1.0, 0.85, 0.20, 0.55),  
         method='gl', parent=view.scene
     )
     lines_inter.order = 2
     lines_inter.set_gl_state(depth_test=False, blend=True)
     lines_inter.visible = False
 
-    # ── Markers ───────────────────────────────────────────────────────────────
+    #Markers        
     markers = scene.visuals.Markers(parent=view.scene)
     markers.set_data(pos=pos, face_color=colors, edge_width=0, size=sizes)
     markers.order = 3
     markers.set_gl_state(depth_test=False, blend=True)
 
-    # ── HUD ───────────────────────────────────────────────────────────────────
+    #HUD       
     PAD = 50
     FS  = 13
 
@@ -305,23 +292,22 @@ def main():
 
     hud_text = scene.visuals.Text(
         "", parent=canvas.scene, color='#00ffcc',
-        pos=(SCR_W - PAD, 4*PAD), font_size=FS,
+        pos=(SCR_W - PAD, 4.5*PAD), font_size=FS,
         anchor_x='right', anchor_y='top'
     )
 
-    # ── Helper: switch edge-layer visibility ──────────────────────────────────
     def set_mode7_edges(active):
         lines_all.visible   = not active
         lines_intra.visible = active
         lines_inter.visible = active
 
-    # ── HUD builders ──────────────────────────────────────────────────────────
     def update_physics_hud():
         state = "RUNNING" if PHYSICS["active"] else "PAUSED"
         mult  = PHYSICS["step_multiplier"]
         hud_text.text = (
             f"Simulation: {state}  [SPACE]\n"
             f"Invert colors  [ I ]\n"
+            f"Screenshot     [ P ]\n"
             f"Step mult  [ [ / ] ]: {mult}x\n"
             f"Springs    [ W / S ]: {PHYSICS['spring_strength']:.5f}\n"
             f"Repulsion  [ A / D ]: {PHYSICS['outward_push']:.1f}\n"
@@ -346,7 +332,7 @@ def main():
     update_physics_hud()
     update_color_hud()
 
-    # ── Invert helpers ────────────────────────────────────────────────────────
+    #Invert helpers                 
     def apply_invert(rgba):
         inv = rgba.copy()
         inv[:, :3] = 1.0 - inv[:, :3]
@@ -378,7 +364,7 @@ def main():
         hud_text.color  = '#006644' if invert_state["active"] else '#00ffcc'
         canvas.update()
 
-    # ── Timer ─────────────────────────────────────────────────────────────────
+    #Timer    
     first_tick = [True]
 
     def on_timer_tick(event):
@@ -421,7 +407,6 @@ def main():
 
         in_mode7 = color_state["mode"] == "cycle_hl"
 
-        # Update the active line layer(s)
         if in_mode7:
             _vc = line_vertex_colors_mode7(len(pos), cycle_id, cycle_palette)
             lines_intra.set_data(pos=pos, color=_vc)
@@ -433,7 +418,7 @@ def main():
 
     timer = app.Timer('auto', connect=on_timer_tick, start=True)  # noqa: F841
 
-    # ── Keyboard ──────────────────────────────────────────────────────────────
+    #Keyboard        
     @canvas.events.key_press.connect
     def on_key_press(event):
         nonlocal colors
@@ -441,7 +426,16 @@ def main():
         key_text = event.text if event.text else ""
         m        = PHYSICS["step_multiplier"]
 
-        if key_text.lower() == 'i':
+        if key_text.lower() == 'p':
+            rgba = canvas.render(alpha=False)          # H×W×3 uint8
+            ts   = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            fname = f"graph_screenshot_{ts}.png"
+            Image.fromarray(rgba).save(fname)
+            print(f"[screenshot] saved → {os.path.abspath(fname)}")
+            info_text.text = f"Screenshot saved: {fname}"
+            canvas.update()
+            return
+        elif key_text.lower() == 'i':
             invert_state["active"] = not invert_state["active"]
             refresh_after_invert()
             return
@@ -472,16 +466,13 @@ def main():
             color_state["mode"] = new_mode
             colors = get_colors(metrics, color_state["mode"])
 
-            # Swap edge-layer visibility when crossing the mode-7 boundary
             if entering_mode7 or leaving_mode7:
                 set_mode7_edges(entering_mode7)
                 if entering_mode7:
-                    # Sync intra-cycle vertex colours to current positions
                     _vc = line_vertex_colors_mode7(len(pos), cycle_id, cycle_palette)
                     lines_intra.set_data(pos=pos, color=_vc)
                     lines_inter.set_data(pos=pos)
                 else:
-                    # lines_all may have drifted while physics ran in mode 7
                     lines_all.set_data(pos=pos)
             canvas.update()
 
@@ -491,7 +482,7 @@ def main():
 
         update_physics_hud()
 
-    # ── Mouse ─────────────────────────────────────────────────────────────────
+    #Mouse    
     @canvas.events.mouse_press.connect
     def on_mouse_press(event):
         if event.button != 1:
@@ -514,12 +505,16 @@ def main():
             else:
                 cycle_info = "  |  no cycle"
 
+            comm_id   = metrics["_community"][closest_idx]  
+            comm_info = f"  |  community #{comm_id}"      
+
             info_text.text = (
                 f"{pkg}   "
                 f"in={int(in_deg[closest_idx])}  "
                 f"out={int(out_deg[closest_idx])}  "
                 f"{mode_label}: {score:.4f}"
                 f"{cycle_info}"
+                f"{comm_info}"  
             )
         else:
             info_text.text = "Click a node for info…"

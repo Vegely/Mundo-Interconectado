@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999995 (MiKTeX 24.1) (preloaded format=xelatex 2025.8.27)  11 APR 2026 13:17
+This is XeTeX, Version 3.141592653-2.6-0.999995 (MiKTeX 24.1) (preloaded format=xelatex 2025.8.27)  11 APR 2026 21:39
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -117,7 +117,13 @@ Package csquotes Info: ... configuration file loaded successfully.
 
 (C:\Users\bogur\AppData\Local\Programs\MiKTeX\tex/latex/csquotes\csquotes.cfg
 File: csquotes.cfg 
-)) (C:\Users\bogur\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsmath.sty
+)
+Package csquotes Info: Enabling multilingual quotes.
+Package csquotes Info: Redefining alias 'spanish' -> 'spanish/spanish'.
+)
+Package csquotes Info: Disabling multilingual quotes.
+Package csquotes Info: Redefining alias 'default' -> 'english'.
+(C:\Users\bogur\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsmath.sty
 Package: amsmath 2023/05/13 v2.17o AMS math features
 \@mathmargin=\skip51
 
@@ -796,11 +802,7 @@ Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 )
 \Hy@SectionHShift=\skip68
 )
-Package hyperref Info: Option `colorlinks' set `true' on input line 75.
-Package csquotes Info: Checking for multilingual support...
-Package csquotes Info: ... found 'babel' package.
-Package csquotes Info: Adjusting default style.
-Package csquotes Info: Redefining alias 'default' -> 'spanish'.
+Package hyperref Info: Option `colorlinks' set `true' on input line 79.
 
 (C:\Users\bogur\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend-xet
 ex.def
@@ -811,46 +813,46 @@ File: l3backend-xetex.def 2024-01-04 L3 backend support: XeTeX
 \g__pdf_backend_annotation_int=\count335
 \g__pdf_backend_link_int=\count336
 ) (InformeBoguradJorge.aux
-LaTeX Info: Redefining \. on input line 8.
-LaTeX Info: Redefining \% on input line 8.
+LaTeX Info: Redefining \. on input line 9.
+LaTeX Info: Redefining \% on input line 9.
 )
 \openout1 = `InformeBoguradJorge.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 77.
-LaTeX Font Info:    ... okay on input line 77.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 77.
-LaTeX Font Info:    ... okay on input line 77.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 77.
-LaTeX Font Info:    ... okay on input line 77.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 77.
-LaTeX Font Info:    ... okay on input line 77.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 77.
-LaTeX Font Info:    Trying to load font information for TS1+cmr on input line 7
-7.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 81.
+LaTeX Font Info:    ... okay on input line 81.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 81.
+LaTeX Font Info:    ... okay on input line 81.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 81.
+LaTeX Font Info:    ... okay on input line 81.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 81.
+LaTeX Font Info:    ... okay on input line 81.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 81.
+LaTeX Font Info:    Trying to load font information for TS1+cmr on input line 8
+1.
 
 (C:\Users\bogur\AppData\Local\Programs\MiKTeX\tex/latex/base\ts1cmr.fd
 File: ts1cmr.fd 2023/04/13 v2.5m Standard LaTeX font definitions
 )
-LaTeX Font Info:    ... okay on input line 77.
-LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 77.
-LaTeX Font Info:    ... okay on input line 77.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 77.
-LaTeX Font Info:    ... okay on input line 77.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 77.
-LaTeX Font Info:    ... okay on input line 77.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 77.
-LaTeX Font Info:    ... okay on input line 77.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 77.
-LaTeX Font Info:    ... okay on input line 77.
-LaTeX Info: Redefining \. on input line 77.
-LaTeX Info: Redefining \% on input line 77.
-LaTeX Info: Redefining \microtypecontext on input line 77.
-Package microtype Info: Applying patch `item' on input line 77.
-Package microtype Info: Applying patch `toc' on input line 77.
-Package microtype Info: Applying patch `eqnum' on input line 77.
-Package microtype Info: Applying patch `footnote' on input line 77.
-Package microtype Info: Applying patch `verbatim' on input line 77.
-LaTeX Info: Redefining \microtypesetup on input line 77.
+LaTeX Font Info:    ... okay on input line 81.
+LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 81.
+LaTeX Font Info:    ... okay on input line 81.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 81.
+LaTeX Font Info:    ... okay on input line 81.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 81.
+LaTeX Font Info:    ... okay on input line 81.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 81.
+LaTeX Font Info:    ... okay on input line 81.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 81.
+LaTeX Font Info:    ... okay on input line 81.
+LaTeX Info: Redefining \. on input line 81.
+LaTeX Info: Redefining \% on input line 81.
+LaTeX Info: Redefining \microtypecontext on input line 81.
+Package microtype Info: Applying patch `item' on input line 81.
+Package microtype Info: Applying patch `toc' on input line 81.
+Package microtype Info: Applying patch `eqnum' on input line 81.
+Package microtype Info: Applying patch `footnote' on input line 81.
+Package microtype Info: Applying patch `verbatim' on input line 81.
+LaTeX Info: Redefining \microtypesetup on input line 81.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
 Package microtype Info: No adjustment of tracking.
@@ -897,7 +899,7 @@ ern Roman (RS)
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
 \c@lstlisting=\count337
-Package hyperref Info: Link coloring ON on input line 77.
+Package hyperref Info: Link coloring ON on input line 81.
 (InformeBoguradJorge.out) (InformeBoguradJorge.out)
 \@outlinefile=\write4
 \openout4 = `InformeBoguradJorge.out'.
@@ -944,8 +946,8 @@ Package microtype Info: Loading generic protrusion settings for font family
 [1
 
 ]
-LaTeX Info: Redefining \. on input line 174.
-LaTeX Info: Redefining \% on input line 174.
+LaTeX Info: Redefining \. on input line 178.
+LaTeX Info: Redefining \% on input line 178.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -956,27 +958,64 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [2]
 Capítulo 2.
+File: Imagenes/TOTAL_ALL.png Graphic file (type bmp)
+<Imagenes/TOTAL_ALL.png>
+File: Imagenes/TOTAL_CENTER.png Graphic file (type bmp)
+<Imagenes/TOTAL_CENTER.png>
 [3
 
 ]
-Capítulo 3.
-[4
+File: Imagenes/IN_ALL.png Graphic file (type bmp)
+<Imagenes/IN_ALL.png>
+File: Imagenes/IN_Center.png Graphic file (type bmp)
+<Imagenes/IN_Center.png>
+File: Imagenes/OUT_ALL.png Graphic file (type bmp)
+<Imagenes/OUT_ALL.png>
+LaTeX Info: Redefining \. on input line 218.
+LaTeX Info: Redefining \% on input line 218.
 
-]
-Capítulo 4.
-[5
 
-]
-Apéndice A.
-Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
-nput line 187.
-LaTeX Font Info:    Font shape `TU/lmtt/bx/n' in size <10> not available
-(Font)              Font shape `TU/lmtt/b/n' tried instead on input line 188.
-[6
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-]
-LaTeX Info: Redefining \. on input line 277.
-LaTeX Info: Redefining \% on input line 277.
+[4]
+File: Imagenes/OUT_center.png Graphic file (type bmp)
+<Imagenes/OUT_center.png>
+LaTeX Info: Redefining \. on input line 226.
+LaTeX Info: Redefining \% on input line 226.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[5]
+File: Imagenes/COnectedComponent.png Graphic file (type bmp)
+<Imagenes/COnectedComponent.png>
+File: Imagenes/COnected_in.png Graphic file (type bmp)
+<Imagenes/COnected_in.png>
+LaTeX Info: Redefining \. on input line 240.
+LaTeX Info: Redefining \% on input line 240.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[6]
+File: Imagenes/PageRank_full.png Graphic file (type bmp)
+<Imagenes/PageRank_full.png>
+File: Imagenes/PageRank_In.png Graphic file (type bmp)
+<Imagenes/PageRank_In.png>
+LaTeX Info: Redefining \. on input line 261.
+LaTeX Info: Redefining \% on input line 261.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -986,8 +1025,12 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [7]
-LaTeX Info: Redefining \. on input line 290.
-LaTeX Info: Redefining \% on input line 290.
+File: Imagenes/BTWEENESSOUT.png Graphic file (type bmp)
+<Imagenes/BTWEENESSOUT.png>
+File: Imagenes/BTWEENESIN.png Graphic file (type bmp)
+<Imagenes/BTWEENESIN.png>
+LaTeX Info: Redefining \. on input line 273.
+LaTeX Info: Redefining \% on input line 273.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -996,24 +1039,150 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[8] (InformeBoguradJorge.aux
-LaTeX Info: Redefining \. on input line 8.
-LaTeX Info: Redefining \% on input line 8.
+[8]
+File: Imagenes/Closeness_In.png Graphic file (type bmp)
+<Imagenes/Closeness_In.png>
+LaTeX Info: Redefining \. on input line 280.
+LaTeX Info: Redefining \% on input line 280.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[9]
+File: Imagenes/Closeness_Out.png Graphic file (type bmp)
+<Imagenes/Closeness_Out.png>
+File: Imagenes/Comunidades.png Graphic file (type bmp)
+<Imagenes/Comunidades.png>
+LaTeX Info: Redefining \. on input line 297.
+LaTeX Info: Redefining \% on input line 297.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[10]
+LaTeX Info: Redefining \. on input line 298.
+LaTeX Info: Redefining \% on input line 298.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[11]
+Capítulo 3.
+
+Overfull \hbox (3.09183pt too wide) in paragraph at lines 308--309
+[]\TU/lmtt/m/n/12 igraph\TU/lmr/m/n/12 : se utiliza para cargar el grafo desde 
+el fichero \TU/lmtt/m/n/12 pypi_multiseed_10k.graphml
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 317--319
+
+ []
+
+[12
+
+]
+File: Imagenes/Initial.png Graphic file (type bmp)
+<Imagenes/Initial.png>
+
+Underfull \hbox (badness 10000) in paragraph at lines 331--334
+
+ []
+
+LaTeX Info: Redefining \. on input line 339.
+LaTeX Info: Redefining \% on input line 339.
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[13]
+File: Imagenes/Full.png Graphic file (type bmp)
+<Imagenes/Full.png>
+LaTeX Info: Redefining \. on input line 371.
+LaTeX Info: Redefining \% on input line 371.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[14]
+Underfull \hbox (badness 10000) in paragraph at lines 388--390
+
+ []
+
+LaTeX Info: Redefining \. on input line 390.
+LaTeX Info: Redefining \% on input line 390.
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[15]
+LaTeX Info: Redefining \. on input line 432.
+LaTeX Info: Redefining \% on input line 432.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[16]
+LaTeX Info: Redefining \. on input line 444.
+LaTeX Info: Redefining \% on input line 444.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[17]
+Capítulo 4.
+(InformeBoguradJorge.bbl [18
+
+]) [19
+
+] (InformeBoguradJorge.aux
+LaTeX Info: Redefining \. on input line 9.
+LaTeX Info: Redefining \% on input line 9.
 )
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-04>
  ***********
 Package rerunfilecheck Info: File `InformeBoguradJorge.out' has not changed.
-(rerunfilecheck)             Checksum: 1E58A93EFD5D10512EA138A3CB1AC304;2688.
+(rerunfilecheck)             Checksum: D2F558486AB4249B2F70C947503CBDB0;3721.
  ) 
 Here is how much of TeX's memory you used:
- 27017 strings out of 409617
- 489022 string characters out of 5774013
- 2236191 words of memory out of 5000000
- 48698 multiletter control sequences out of 15000+600000
- 563218 words of font info for 73 fonts, out of 8000000 for 9000
+ 27198 strings out of 409617
+ 496964 string characters out of 5774013
+ 1932191 words of memory out of 5000000
+ 48858 multiletter control sequences out of 15000+600000
+ 564130 words of font info for 74 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 84i,12n,93p,1018b,2109s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,11n,93p,1018b,546s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on InformeBoguradJorge.pdf (10 pages).
+Output written on InformeBoguradJorge.pdf (21 pages).
