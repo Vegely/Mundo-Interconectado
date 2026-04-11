@@ -1,3 +1,5 @@
+import colorsys
+
 import igraph as ig
 import numpy as np
 from vispy import app, scene
@@ -55,14 +57,6 @@ def cmap_ice(norm):
         (0.0, 0.7, 1.0), (0.8, 1.0, 1.0),
     ])
 
-def cmap_cycle_highlight(norm):
-    """7 — cyan if in a cycle, dark grey if not. norm is binary 0/1."""
-    result = np.zeros((len(norm), 4), dtype=np.float32)
-    in_c = norm > 0.5
-    result[~in_c] = [0.15, 0.15, 0.18, 1.0]   # dim grey — safe node
-    result[ in_c] = [0.0,  0.90, 0.85, 1.0]   # vivid cyan — trapped in cycle
-    return result
-
 def cmap_flat(norm):
     """8 — every node the same soft blue."""
     return np.tile(np.array([0.45, 0.60, 1.0, 1.0], dtype=np.float32), (len(norm), 1))
@@ -70,6 +64,41 @@ def cmap_flat(norm):
 def get_colors(metrics, mode):
     norm, cmap, _ = metrics[mode]
     return cmap(norm) if callable(cmap) else vispy_cmap(cmap, norm)
+
+# ── Cycle palette & per-cycle node colors ─────────────────────────────────────
+def generate_cycle_palette(n_cycles, saturation=0.82, value=0.95):
+    """Evenly spaced hues across the HSV wheel for n_cycles distinct colors."""
+    if n_cycles == 0:
+        return np.zeros((1, 4), dtype=np.float32)
+    palette = np.zeros((n_cycles, 4), dtype=np.float32)
+    for i in range(n_cycles):
+        h = i / n_cycles
+        r, g, b = colorsys.hsv_to_rgb(h, saturation, value)
+        palette[i] = [r, g, b, 1.0]
+    return palette
+
+def node_colors_mode7(cycle_id, cycle_palette):
+    """Per-node RGBA: dim grey if not in any cycle, else unique cycle hue."""
+    n   = len(cycle_id)
+    out = np.tile(np.array([0.10, 0.10, 0.12, 1.0], dtype=np.float32), (n, 1))
+    mask = cycle_id >= 0
+    if mask.any():
+        out[mask] = cycle_palette[cycle_id[mask] % len(cycle_palette)]
+    return out
+
+def line_vertex_colors_mode7(pos_len, cycle_id, cycle_palette):
+    """
+    Per-vertex color array for the line visual (one RGBA per node position).
+    Cycle nodes get their cycle hue; non-cycle nodes get transparent dark grey
+    so their attached lines fade to invisible at the non-cycle end.
+    """
+    out = np.tile(np.array([0.10, 0.10, 0.12, 0.0], dtype=np.float32), (pos_len, 1))
+    mask = cycle_id >= 0
+    if mask.any():
+        c = cycle_palette[cycle_id[mask] % len(cycle_palette)].copy()
+        c[:, 3] = 0.35          # intra-cycle edge alpha
+        out[mask] = c
+    return out
 
 # ── SCC cycle computation ─────────────────────────────────────────────────────
 def compute_scc_data(g):
@@ -84,13 +113,43 @@ def compute_scc_data(g):
             cycle_id[v]    = cid
             cycle_sizes[v] = len(members)
 
-    total = len(cycles)
-    if total:
-        avg     = sum(len(c) for c in cycles) / total
+    n_cycles = len(cycles)
+    if n_cycles:
+        avg     = sum(len(c) for c in cycles) / n_cycles
         biggest = len(cycles[0])
+        print(f"    {n_cycles} cycles found — biggest={biggest}, avg={avg:.1f}")
     else:
         print("    No dependency cycles found!")
-    return cycle_id, cycle_sizes, cycles
+
+    cycle_palette = generate_cycle_palette(n_cycles)
+    return cycle_id, cycle_sizes, cycles, cycle_palette
+
+# ── Edge masks for mode 7 ─────────────────────────────────────────────────────
+def compute_mode7_edge_masks(edges, cycle_id):
+    """
+    Partition all edges into three groups for mode-7 rendering:
+      intra  — both endpoints in the SAME cycle   → coloured by cycle hue
+      inter  — endpoints in DIFFERENT cycles       → bright bridge lines
+      other  — at least one endpoint not in cycle  → hidden in mode 7
+
+    Note: a true "shortest path visiting all cycles" (Steiner / TSP) is
+    NP-hard and infeasible for graphs with thousands of cycles or a single
+    SCC of 3 500+ nodes. Showing the raw inter-cycle edges in the graph
+    gives the same spatial insight without the combinatorial explosion.
+    """
+    src_cid = cycle_id[edges[:, 0]]
+    tgt_cid = cycle_id[edges[:, 1]]
+
+    both_in_cycle = (src_cid >= 0) & (tgt_cid >= 0)
+    intra_mask    = both_in_cycle & (src_cid == tgt_cid)
+    inter_mask    = both_in_cycle & (src_cid != tgt_cid)
+
+    intra_edges = edges[intra_mask]
+    inter_edges = edges[inter_mask]
+    print(f"    edge split — intra-cycle={intra_mask.sum():,}  "
+          f"inter-cycle={inter_mask.sum():,}  "
+          f"hidden={((~intra_mask) & (~inter_mask)).sum():,}")
+    return intra_edges, inter_edges
 
 # ── Metric precomputation ─────────────────────────────────────────────────────
 def precompute_metrics(g):
@@ -104,12 +163,17 @@ def precompute_metrics(g):
     print("  · closeness …")
     clos = np.nan_to_num(np.array(g.closeness()), nan=0.0)
 
-    cycle_id, cycle_sizes, cycles = compute_scc_data(g)
+    cycle_id, cycle_sizes, cycles, cycle_palette = compute_scc_data(g)
 
-    # mode 7: 1.0 = in a cycle, 0.0 = not
+    # mode 7: dummy norm (coloring is handled separately via cycle_palette)
     in_cycle_norm = (cycle_id >= 0).astype(np.float32)
     # mode 8: uniform value (cmap_flat ignores it)
     flat_norm     = np.full(g.vcount(), 0.5, dtype=np.float32)
+
+    # cmap_cycle_highlight is now a no-op placeholder;
+    # actual colours are computed in node_colors_mode7()
+    def cmap_cycle_highlight(norm):
+        return node_colors_mode7(cycle_id, cycle_palette)
 
     metrics = {
         "pagerank":     (normalize_log(pr),               "plasma",          "PageRank"),
@@ -118,13 +182,13 @@ def precompute_metrics(g):
         "total_degree": (normalize_log(in_deg + out_deg), "magma",           "Total Degree"),
         "betweenness":  (normalize_log(btwn),             cmap_fire,         "Betweenness Centrality"),
         "closeness":    (normalize_linear(clos),          cmap_ice,          "Closeness Centrality"),
-        "cycle_hl":     (in_cycle_norm,                   cmap_cycle_highlight, "Cycle Highlight"),
+        "cycle_hl":     (in_cycle_norm,                   cmap_cycle_highlight, "Cycle Highlight (per-cycle color)"),
         "flat":         (flat_norm,                       cmap_flat,         "Flat (uniform)"),
     }
-    # stash raw SCC arrays for the mouse handler
-    metrics["_cycle_id"]    = cycle_id
-    metrics["_cycle_sizes"] = cycle_sizes
-    metrics["_cycles"]      = cycles
+    metrics["_cycle_id"]      = cycle_id
+    metrics["_cycle_sizes"]   = cycle_sizes
+    metrics["_cycles"]        = cycles
+    metrics["_cycle_palette"] = cycle_palette
     return metrics
 
 COLOR_KEYS = [
@@ -156,6 +220,12 @@ def main():
     print("Precomputing centrality metrics…")
     metrics = precompute_metrics(g)
 
+    cycle_id      = metrics["_cycle_id"]
+    cycle_palette = metrics["_cycle_palette"]
+
+    print("Precomputing mode-7 edge partitions…")
+    intra_edges, inter_edges = compute_mode7_edge_masks(edges, cycle_id)
+
     color_state = {"mode": "pagerank"}
     colors      = get_colors(metrics, color_state["mode"])
 
@@ -167,7 +237,7 @@ def main():
     SCR_H = _vm.size.height
     print(f"  screen: {SCR_W}×{SCR_H}")
 
-    # ── Canvas: exact screen size + borderless ────────────────────────────────
+    # ── Canvas ────────────────────────────────────────────────────────────────
     canvas = scene.SceneCanvas(
         keys='interactive', title='Real-Time Physics Graph',
         bgcolor='#0a0a0c', size=(SCR_W, SCR_H), decorate=False, show=True
@@ -176,44 +246,75 @@ def main():
     view = canvas.central_widget.add_view()
     view.camera = 'panzoom'
 
-    lines = scene.visuals.Line(
+    # ── Line visuals (three layers) ───────────────────────────────────────────
+    # Layer 0: all edges — used in every mode EXCEPT mode 7
+    lines_all = scene.visuals.Line(
         pos=pos, connect=edges, color=(1.0, 1.0, 1.0, 0.05),
         method='gl', parent=view.scene
     )
-    lines.order = 0
-    lines.set_gl_state(depth_test=False, blend=True)
+    lines_all.order = 0
+    lines_all.set_gl_state(depth_test=False, blend=True)
 
+    # Layer 1: intra-cycle edges — only visible in mode 7
+    # Vertex colours: each node gets its cycle hue so edges blend between them.
+    _intra_vc = line_vertex_colors_mode7(len(pos), cycle_id, cycle_palette)
+    lines_intra = scene.visuals.Line(
+        pos=pos,
+        connect=intra_edges if len(intra_edges) else np.zeros((0, 2), dtype=np.uint32),
+        color=_intra_vc,
+        method='gl', parent=view.scene
+    )
+    lines_intra.order = 1
+    lines_intra.set_gl_state(depth_test=False, blend=True)
+    lines_intra.visible = False
+
+    # Layer 2: inter-cycle bridge edges — only visible in mode 7
+    # Bright white/gold so cross-cycle bridges stand out clearly.
+    lines_inter = scene.visuals.Line(
+        pos=pos,
+        connect=inter_edges if len(inter_edges) else np.zeros((0, 2), dtype=np.uint32),
+        color=(1.0, 0.85, 0.20, 0.55),   # warm gold, semi-transparent
+        method='gl', parent=view.scene
+    )
+    lines_inter.order = 2
+    lines_inter.set_gl_state(depth_test=False, blend=True)
+    lines_inter.visible = False
+
+    # ── Markers ───────────────────────────────────────────────────────────────
     markers = scene.visuals.Markers(parent=view.scene)
     markers.set_data(pos=pos, face_color=colors, edge_width=0, size=sizes)
-    markers.order = 1
+    markers.order = 3
     markers.set_gl_state(depth_test=False, blend=True)
 
-    # ── HUD — change PAD here only ────────────────────────────────────────────
+    # ── HUD ───────────────────────────────────────────────────────────────────
     PAD = 50
     FS  = 13
 
-    # TOP-LEFT: node click info
     info_text = scene.visuals.Text(
         "Click a node for info…", parent=canvas.scene, color='#cccccc',
         pos=(PAD, PAD), font_size=FS,
         anchor_x='left', anchor_y='top'
     )
 
-    # BOTTOM-LEFT: color legend
     color_hud = scene.visuals.Text(
         "", parent=canvas.scene, color='#ffcc00',
-        pos=(PAD, SCR_H - 6.5*PAD), font_size=FS,
+        pos=(PAD, SCR_H - 7*PAD), font_size=FS,
         anchor_x='left', anchor_y='bottom'
     )
 
-    # TOP-RIGHT: physics controls
     hud_text = scene.visuals.Text(
         "", parent=canvas.scene, color='#00ffcc',
         pos=(SCR_W - PAD, 4*PAD), font_size=FS,
         anchor_x='right', anchor_y='top'
     )
 
-    # ── HUD text builders ─────────────────────────────────────────────────────
+    # ── Helper: switch edge-layer visibility ──────────────────────────────────
+    def set_mode7_edges(active):
+        lines_all.visible   = not active
+        lines_intra.visible = active
+        lines_inter.visible = active
+
+    # ── HUD builders ──────────────────────────────────────────────────────────
     def update_physics_hud():
         state = "RUNNING" if PHYSICS["active"] else "PAUSED"
         mult  = PHYSICS["step_multiplier"]
@@ -226,9 +327,14 @@ def main():
         )
 
     def update_color_hud():
-        rows = ["Color mode  [1-8]:"]
+        n_cycles = len(metrics["_cycles"])
+        rows = [
+            "Color mode  [1-8]:",
+            f"  (mode 7: {n_cycles} cycles, each unique hue)",
+            f"  (mode 7: gold lines = inter-cycle bridges)",
+        ]
         labels = {
-            "cycle_hl": "Cycle Highlight  (cyan=in cycle)",
+            "cycle_hl": "Cycle Highlight  (per-cycle color + bridge edges)",
             "flat":     "Flat uniform color",
         }
         for i, key in enumerate(COLOR_KEYS):
@@ -280,7 +386,17 @@ def main():
             velocity = np.where(fast, (velocity / speed) * PHYSICS["max_speed"], velocity)
 
         pos += np.nan_to_num(velocity)
-        lines.set_data(pos=pos)
+
+        in_mode7 = color_state["mode"] == "cycle_hl"
+
+        # Update the active line layer(s)
+        if in_mode7:
+            _vc = line_vertex_colors_mode7(len(pos), cycle_id, cycle_palette)
+            lines_intra.set_data(pos=pos, color=_vc)
+            lines_inter.set_data(pos=pos)
+        else:
+            lines_all.set_data(pos=pos)
+
         markers.set_data(pos=pos, face_color=colors, edge_width=0, size=sizes)
 
     timer = app.Timer('auto', connect=on_timer_tick, start=True)  # noqa: F841
@@ -312,9 +428,27 @@ def main():
         elif key_text.lower() == 'e':
             PHYSICS["gravity"] = max(0.0, PHYSICS["gravity"] - 0.001 * m)
         elif key_text in KEY_BINDS:
-            idx = KEY_BINDS.index(key_text)
-            color_state["mode"] = COLOR_KEYS[idx]
+            idx  = KEY_BINDS.index(key_text)
+            new_mode = COLOR_KEYS[idx]
+            entering_mode7 = new_mode == "cycle_hl"
+            leaving_mode7  = color_state["mode"] == "cycle_hl" and not entering_mode7
+
+            color_state["mode"] = new_mode
             colors = get_colors(metrics, color_state["mode"])
+
+            # Swap edge-layer visibility when crossing the mode-7 boundary
+            if entering_mode7 or leaving_mode7:
+                set_mode7_edges(entering_mode7)
+                if entering_mode7:
+                    # Sync intra-cycle vertex colours to current positions
+                    _vc = line_vertex_colors_mode7(len(pos), cycle_id, cycle_palette)
+                    lines_intra.set_data(pos=pos, color=_vc)
+                    lines_inter.set_data(pos=pos)
+                else:
+                    # lines_all may have drifted while physics ran in mode 7
+                    lines_all.set_data(pos=pos)
+            canvas.update()
+
             markers.set_data(pos=pos, face_color=colors, edge_width=0, size=sizes)
             update_color_hud()
             return
@@ -336,8 +470,8 @@ def main():
             mode_label = metrics[color_state["mode"]][2]
             score      = metrics[color_state["mode"]][0][closest_idx]
 
-            cid   = metrics["_cycle_id"][closest_idx]
-            csz   = metrics["_cycle_sizes"][closest_idx]
+            cid = metrics["_cycle_id"][closest_idx]
+            csz = metrics["_cycle_sizes"][closest_idx]
 
             if cid >= 0:
                 cycle_info = f"  |  cycle #{cid}  size={csz}"
@@ -353,8 +487,6 @@ def main():
             )
         else:
             info_text.text = "Click a node for info…"
-
-    print("Rendering — enjoy!")
     app.run()
 
 
