@@ -1,0 +1,290 @@
+\documentclass[12pt,a4paper]{report}
+
+% --- Paquetes esenciales para idioma, codificación y tipografía ---
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-tabla,es-noquoting]{babel}
+\usepackage{microtype} % Mejora el espaciado y la justificación del texto
+\usepackage{csquotes}  % Comillas dependientes del contexto
+
+% --- Paquetes para matemáticas, imágenes y tablas ---
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs} % Para crear tablas de aspecto profesional
+\usepackage{tikz}
+\usepackage{tikz-3dplot}
+\usetikzlibrary{3d, calc}
+
+% --- Configuración de página y márgenes ---
+\usepackage{geometry}
+\geometry{
+	a4paper,
+	left=2.5cm,
+	right=2.5cm,
+	top=3cm,
+	bottom=3cm,
+}
+
+% --- Configuración de encabezados y pies de página ---
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{} % Limpia los encabezados y pies por defecto
+\fancyhead[L]{\nouppercase{\leftmark}} % Nombre del capítulo a la izquierda
+\fancyhead[R]{\thepage} % Número de página a la derecha
+\renewcommand{\headrulewidth}{0.4pt} % Línea separadora en el encabezado
+
+% --- Configuración de listings para código Python ---
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Definición de colores personalizados para el código
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.96,0.96,0.94}
+
+\lstset{
+	language=Python,
+	backgroundcolor=\color{backcolour},
+	basicstyle=\ttfamily\footnotesize,
+	keywordstyle=\color{blue}\bfseries,
+	stringstyle=\color{codepurple},
+	commentstyle=\color{codegreen},
+	numberstyle=\tiny\color{codegray},
+	numbers=left,
+	stepnumber=1,
+	numbersep=10pt,
+	breaklines=true,
+	frame=single,
+	rulecolor=\color{black!30},
+	showstringspaces=false,
+	captionpos=b,
+	tabsize=4
+}
+
+% --- Paquete para hipervínculos (debe ser el último paquete importado) ---
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue!60!black,
+	filecolor=magenta,
+	urlcolor=cyan,
+	citecolor=green!60!black,
+	pdftitle={Análisis de la Red de Dependencias de Python},
+	pdfauthor={Bogurad Barañski Barañska, Jorge Bengoa Pinedo}
+}
+
+\begin{document}
+	
+	% ==========================================
+	% PORTADA PROFESIONAL
+	% ==========================================
+	\begin{titlepage}
+		\centering
+		\vspace*{2cm}
+		
+		% Puedes añadir el logo de tu universidad aquí si lo deseas
+		% \includegraphics[width=0.3\textwidth]{logo.png}\par\vspace{1cm}
+		
+		{\scshape\LARGE Universidad Politécnica de Madrid \par}
+		\vspace{1cm}
+		{\scshape\Large Trabajo Final de MINT\par}
+		\vspace{1.5cm}
+		
+		\rule{\textwidth}{0.4pt}\par
+		\vspace{0.4cm}
+		{\huge\bfseries Análisis de la Red de Dependencias de Python\par}
+		\vspace{0.4cm}
+		\rule{\textwidth}{0.4pt}\par
+		\vspace{2cm}
+		
+		{\Large\itshape
+			Bogurad Barañski Barañska \\
+			Jorge Bengoa Pinedo\par
+		}
+		\vspace{2cm}
+		
+		\vfill
+		% Supervisado por:\par
+		% \vspace{0.2cm}
+		% {\large Dr. Nombre del Profesor\par}
+		
+		\vspace{2cm}
+		{\large \today\par}
+	\end{titlepage}
+	
+	% ==========================================
+	% ÍNDICES
+	% ==========================================
+	\pagenumbering{roman} % Números romanos para el índice
+	\tableofcontents
+	\newpage
+	
+	% Descomentar si vas a tener figuras o tablas en el reporte
+	% \listoffigures
+	% \newpage
+	% \listoftables
+	% \newpage
+	
+	\pagenumbering{arabic} % Números arábigos para el contenido
+	
+	% ==========================================
+	% CAPÍTULO 1: INTRODUCCIÓN
+	% ==========================================
+	\chapter{Introducción}
+	
+	\section{Descripción de la Red Propuesta}
+	En este trabajo se va a analizar la red de dependencias del ecosistema de paquetes de Python. La red consiste en un grafo dirigido donde los nodos representan paquetes de software y las aristas dirigidas representan las dependencias entre ellos (un paquete requiere de otro para su instalación o funcionamiento). 
+	
+	\section{Construcción de la Red}
+	La red se construye mediante un proceso de extracción de datos automatizado (\textit{web scraping}) haciendo uso de la API pública en formato JSON de PyPI mediante el script \texttt{create\_network.py} del Listing \ref{lst:scraper}. Se parte de una lista de 10 paquetes semilla representativos de distintas áreas, y se aplica un algoritmo de búsqueda recursivo. Por cada paquete, se extraen sus dependencias directas de forma asíncrona, añadiéndolas a la cola de procesamiento hasta alcanzar el volumen deseado para el estudio. 
+	
+	\section{Herramientas Utilizadas}
+	En esta sección se detallan las características del Hardware empleado junto con las versiones del Softwarw utilizado.
+	
+	\subsection{Características del Equipo}
+	Se ha utilizado un portátil con las siguientes características:
+	\begin{itemize}
+		\item \textbf{Sistema Operativo:} Microsoft Windows 11 Home (Versión 10.0.26200)
+		\item \textbf{Procesador (CPU):} Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
+		\item \textbf{Memoria RAM:} 16 GB
+	\end{itemize}
+	
+	\subsection{Software empleado}
+	Como lenguaje de programación se ha utilizado \textbf{Python} en la versión \textbf{3.13.7}. Las librerías y dependencias principales utilizadas son:
+	\begin{itemize}
+		\item \texttt{networkx==3.6.1}: Para la construcción de la red y procesado preliminar.
+		\item \texttt{igraph==1.0.0}: Para el cálculo eficiente en grafos.
+		\item \texttt{pandas==2.3.2}: Para la estructuración y manejo de los datos.
+		\item \texttt{aiohttp==3.13.3}: Para la ejecución segura de peticiones web asíncronas a la API de PyPI durante la fase de recolección de datos.
+		\item \texttt{vispy==0.16.1}: Para el renderizado interactivo del motor de físicas del grafo, haciendo uso de la aceleración gráfica (GPU).
+		\item \texttt{numpy==2.3.3}: Para el manejo eficiente de operaciones matriciales y vectorización de las fuerzas en el motor de renderizado.
+		\item \texttt{matplotlib==3.10.7}: Para la generación visual de tablas y gráficos estáticos de soporte durante el análisis.
+	\end{itemize}
+
+	
+	\section{Objetivos del Estudio}
+	Los objetivos principales de este análisis son:
+	\begin{enumerate}
+		\item Obtener una visión macroscópica de la estructura del ecosistema de desarrollo de Python.
+		\item Identificar los paquetes \textit{hub} o nodos centrales que actúan como dependencias críticas transversales para la mayoría de los proyectos.
+		\item Detectar comunidades o clústeres de paquetes que tienden a utilizarse conjuntamente dentro de dominios de desarrollo específicos.
+	\end{enumerate}
+	
+	\chapter{Análisis de la red}
+	\section{Descripción de la red}
+	La red de dependencias de Python estudiada es una red dirigida con \(6765\) nodos y \(36054\) aristas. 
+	
+	\section{Análisis de centralidad}
+	\section{Análisis de comunidades}
+	\section{Hipótesis de construcción de la red}
+	\chapter{Herramienta de visualización de la red}
+	\chapter{Conclusiones}
+	\appendix
+	\chapter{Código de Extracción (Python)}
+	
+	\begin{lstlisting}[caption={Script de webscrapping \texttt{create\_network.py}}, label={lst:scraper}]
+		import asyncio
+		import aiohttp
+		import pandas as pd
+		import networkx as nx
+		import re
+		import time
+		
+		# A diverse list of starting points 
+		SEED_PACKAGES = [
+		"pandas",       # Data Science
+		"tensorflow",   # Machine Learning / AI
+		"django",       # Heavy Web Applications
+		"fastapi",      # Lightweight Web APIs
+		"kivy",         # Mobile/Desktop App UI
+		"PyQt5",        # Desktop Applications
+		"pygame",       # Game Development
+		"ansible",      # DevOps and Server Management
+		"pytest",       # Testing framework
+		"jupyter"       # Interactive computing
+		]
+		
+		MAX_NODES = 10000
+		MAX_CONCURRENT_REQUESTS = 40  
+		
+		async def fetch_dependencies(session, pkg_name, semaphore):
+		"""Fetches JSON data safely using a semaphore to prevent server bans."""
+		url = f"https://pypi.org/pypi/{pkg_name}/json"
+		
+		async with semaphore:
+		for attempt in range(3):
+		try:
+		async with session.get(url, timeout=15) as response:
+		if response.status == 200:
+		data = await response.json()
+		return pkg_name, data.get("info", {}).get("requires_dist")
+		elif response.status == 429: 
+		await asyncio.sleep(2 ** attempt) 
+		continue
+		else:
+		return pkg_name, None
+		except Exception:
+		await asyncio.sleep(1)
+		return pkg_name, None 
+		
+		async def main():
+		edges = []
+		visited = set()
+		
+		# Initialize the queue with ALL of our seed packages
+		queue = set(SEED_PACKAGES)
+		
+		print(f"--- Starting multi-seed crawl up to {MAX_NODES} nodes ---")
+		print(f"Seeds: {', '.join(SEED_PACKAGES)}")
+		start_time = time.time()
+		
+		semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
+		connector = aiohttp.TCPConnector(limit=MAX_CONCURRENT_REQUESTS)
+		
+		async with aiohttp.ClientSession(connector=connector) as session:
+		while queue and len(visited) < MAX_NODES:
+		batch_size = min(MAX_CONCURRENT_REQUESTS * 2, MAX_NODES - len(visited))
+		current_batch = [queue.pop() for _ in range(min(batch_size, len(queue)))]
+		
+		visited.update(current_batch)
+		
+		tasks = [fetch_dependencies(session, pkg, semaphore) for pkg in current_batch]
+		results = await asyncio.gather(*tasks)
+		
+		for current_pkg, requires_dist in results:
+		if requires_dist:
+		for dep in requires_dist:
+		dep_name = re.split(r'[\s=><(;]', dep)[0].strip()
+		
+		if dep_name and "extra" not in dep_name:
+		edges.append({"Source": current_pkg, "Target": dep_name})
+		
+		if dep_name not in visited:
+		queue.add(dep_name)
+		
+		print(f"Nodes fully processed: {len(visited)} / {MAX_NODES}... (Queue size: {len(queue)})")
+		
+		# Data Export
+		print(f"\nScraping complete in {time.time() - start_time:.2f} seconds.")
+		
+		if edges:
+		df = pd.DataFrame(edges).drop_duplicates()
+		df.to_csv("pypi_multiseed_10k.csv", index=False)
+		print(f"Saved CSV: 'pypi_multiseed_10k.csv' with {len(df)} total edges.")
+		
+		G = nx.from_pandas_edgelist(df, source='Source', target='Target', create_using=nx.DiGraph())
+		nx.write_graphml(G, "pypi_multiseed_10k.graphml")
+		print(f"Saved GraphML: 'pypi_multiseed_10k.graphml' with {G.number_of_nodes()} nodes.")
+		else:
+		print("\nFailed to find dependencies.")
+		
+		if __name__ == "__main__":
+		try:
+		asyncio.run(main())
+		except KeyboardInterrupt:
+		print("\nProcess interrupted. Note: Run the script fully to save the files.")
+	\end{lstlisting}
+	\chapter{Código de Análisis de la red}
+	\chapter{Código de Visualización de la red}
+\end{document}
