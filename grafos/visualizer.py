@@ -226,8 +226,9 @@ def main():
     print("Precomputing mode-7 edge partitions…")
     intra_edges, inter_edges = compute_mode7_edge_masks(edges, cycle_id)
 
-    color_state = {"mode": "pagerank"}
-    colors      = get_colors(metrics, color_state["mode"])
+    color_state  = {"mode": "pagerank"}
+    invert_state = {"active": False}
+    colors       = get_colors(metrics, color_state["mode"])
 
     # ── Query screen resolution via GLFW before opening the window ────────────
     import glfw as _glfw
@@ -320,6 +321,7 @@ def main():
         mult  = PHYSICS["step_multiplier"]
         hud_text.text = (
             f"Simulation: {state}  [SPACE]\n"
+            f"Invert colors  [ I ]\n"
             f"Step mult  [ [ / ] ]: {mult}x\n"
             f"Springs    [ W / S ]: {PHYSICS['spring_strength']:.5f}\n"
             f"Repulsion  [ A / D ]: {PHYSICS['outward_push']:.1f}\n"
@@ -330,8 +332,6 @@ def main():
         n_cycles = len(metrics["_cycles"])
         rows = [
             "Color mode  [1-8]:",
-            f"  (mode 7: {n_cycles} cycles, each unique hue)",
-            f"  (mode 7: gold lines = inter-cycle bridges)",
         ]
         labels = {
             "cycle_hl": "Cycle Highlight  (per-cycle color + bridge edges)",
@@ -345,6 +345,38 @@ def main():
 
     update_physics_hud()
     update_color_hud()
+
+    # ── Invert helpers ────────────────────────────────────────────────────────
+    def apply_invert(rgba):
+        inv = rgba.copy()
+        inv[:, :3] = 1.0 - inv[:, :3]
+        return inv
+
+    def refresh_after_invert():
+        nonlocal colors
+        c = get_colors(metrics, color_state["mode"])
+        if invert_state["active"]:
+            c = apply_invert(c)
+        colors = c
+        markers.set_data(pos=pos, face_color=colors, edge_width=0, size=sizes)
+
+        in_mode7 = color_state["mode"] == "cycle_hl"
+        if in_mode7:
+            _vc = line_vertex_colors_mode7(len(pos), cycle_id, cycle_palette)
+            if invert_state["active"]:
+                _vc = apply_invert(_vc)
+            lines_intra.set_data(pos=pos, color=_vc)
+            inter_col = (0.20, 0.35, 1.0, 0.55) if invert_state["active"] else (1.0, 0.85, 0.20, 0.55)
+            lines_inter.set_data(pos=pos, color=inter_col)
+        else:
+            edge_col = (0.0, 0.0, 0.0, 0.15) if invert_state["active"] else (1.0, 1.0, 1.0, 0.05)
+            lines_all.set_data(pos=pos, color=edge_col)
+
+        canvas.bgcolor  = '#f5f5f3' if invert_state["active"] else '#0a0a0c'
+        info_text.color = '#222222' if invert_state["active"] else '#cccccc'
+        color_hud.color = '#884400' if invert_state["active"] else '#ffcc00'
+        hud_text.color  = '#006644' if invert_state["active"] else '#00ffcc'
+        canvas.update()
 
     # ── Timer ─────────────────────────────────────────────────────────────────
     first_tick = [True]
@@ -409,7 +441,11 @@ def main():
         key_text = event.text if event.text else ""
         m        = PHYSICS["step_multiplier"]
 
-        if key_name == 'Space' or key_text == ' ':
+        if key_text.lower() == 'i':
+            invert_state["active"] = not invert_state["active"]
+            refresh_after_invert()
+            return
+        elif key_name == 'Space' or key_text == ' ':
             PHYSICS["active"] = not PHYSICS["active"]
         elif key_text == ']':
             PHYSICS["step_multiplier"] *= 10.0
@@ -487,6 +523,7 @@ def main():
             )
         else:
             info_text.text = "Click a node for info…"
+
     app.run()
 
 
