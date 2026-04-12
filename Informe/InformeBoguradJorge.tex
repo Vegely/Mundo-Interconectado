@@ -182,7 +182,7 @@
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=1\linewidth]{Imagenes/TOTAL_ALL}
-		\caption{}
+		\caption{Representación del grado total de los nodos de la red explotada en su totalidad.}
 		\label{fig:totalall}
 	\end{figure}
 	
@@ -190,7 +190,7 @@
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=1\linewidth]{Imagenes/TOTAL_CENTER}
-		\caption{}
+		\caption{Representación del grado total de los nodos de la red explotada con zoom a la agrupación central.}
 		\label{fig:totalcenter}
 	\end{figure}
 	
@@ -199,28 +199,28 @@
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=1\linewidth]{Imagenes/IN_ALL}
-		\caption{}
+		\caption{Representación del grado de entrada de los nodos de la red explotada en su totalidad.}
 		\label{fig:inall}
 	\end{figure}
 	
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=1\linewidth]{Imagenes/IN_Center}
-		\caption{}
+		\caption{Representación del grado de entrada de los nodos de la red explotada con zoom a la agrupación central.}
 		\label{fig:incenter}
 	\end{figure}
 	
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=1\linewidth]{Imagenes/OUT_ALL}
-		\caption{}
+		\caption{Representación del grado de salida de los nodos de la red explotada en su totalidad.}
 		\label{fig:outall}
 	\end{figure}
 	
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=1\linewidth]{Imagenes/OUT_center}
-		\caption{}
+		\caption{Representación del grado de salida de los nodos de la red explotada con zoom a la agrupación central.}
 		\label{fig:outcenter}
 	\end{figure}
 	
@@ -234,24 +234,23 @@
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=1\linewidth]{Imagenes/ConectedComponent}
-	\caption{}
+	\caption{Representación de la componente fuertemente conexa en rojo de la red explotada.}
 	\label{fig:conectedcomponent}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=1\linewidth]{Imagenes/Conected_in}
-	\caption{}
+	\caption{Representación de la componente fuertemente conexa en rojo con zoom en la agrupación central.}
 	\label{fig:conectedin}
 \end{figure}
 
 	\section{Análisis de centralidad}
+	Una vez realizado el análisis preliminar de la red se estudian las propiedades de centralidad de la misma para ver qué paquetes son los más importantes dentro de la red de dependencias de Python.
 	\begin{enumerate}
 		\item \textbf{PageRank}: Importancia global de cada nodo en función de la calidad de sus referencias entrantes. Paleta \textit{plasma}.
 		\item \textbf{Centralidad de intermediación} (\textit{betweenness}): Frecuencia con la que un nodo aparece en los caminos más cortos entre pares de nodos. Paleta degradada de negro a blanco pasando por rojo y amarillo (\textit{fire}).
 		\item \textbf{Centralidad de cercanía} (\textit{closeness}): Inverso de la distancia media al resto de nodos alcanzables. Paleta degradada de azul oscuro a cian (\textit{ice}).
-		\item \textbf{Destacado de ciclos}: Modo especializado descrito en la Sección \ref{sec:ciclos}.
-		\item \textbf{Comunidades (Louvain)}: Cada nodo se colorea según la comunidad a la que pertenece, detectada mediante el algoritmo de Louvain aplicado sobre el grafo no dirigido. A cada comunidad se le asigna un tono único extraído de la misma paleta HSV uniforme utilizada en el modo de ciclos, facilitando la comparación visual entre ambas estructuras.
 	\end{enumerate}
 	
 \begin{figure}[H]
@@ -294,7 +293,7 @@
 	\label{fig:closenessout}
 \end{figure}
 	\section{Análisis de comunidades}
-
+ \textbf{Comunidades (Louvain)} \cite{Blondel_2008}: Cada nodo se colorea según la comunidad a la que pertenece, detectada mediante el algoritmo de Louvain aplicado sobre el grafo no dirigido. A cada comunidad se le asigna un tono único extraído de la misma paleta HSV uniforme utilizada en el modo de ciclos, facilitando la comparación visual entre ambas estructuras.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=1\linewidth]{Imagenes/Comunidades}
