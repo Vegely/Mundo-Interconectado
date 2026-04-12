@@ -31,7 +31,7 @@ def graphStatistics(G):
     
     print(f"Componentes débilmente conexas: {len(G_weak)}")
     print(f"Tamaño de la componente gigante: {max(G_weak.sizes())} paquetes ({(max(G_weak.sizes())/nnodes)*100:.1f}%)")
-    print(f"Compnentes fuertemente conexas (bucles): {len(G_strong)}")
+    print(f"Componentes fuertemente conexas (bucles): {len(G_strong)}")
     
     print(f"Grado medio: {avg_degree:.2f}")
     print(f"Diámetro (C. gigante): {diameter}")
@@ -459,6 +459,8 @@ def powerLawTest(G):
     
             bold_p = "**" if (not np.isnan(p) and p < 0.1) else "  "
             print(f"{alt_name:<18} {LR:>10.3f} {bold_p}{p:>6.3f}  {msg}")
+        
+        print("")
     
 file_path = "pypi_multiseed_10k.graphml"
 G = ig.Graph.Read_GraphML(file_path)

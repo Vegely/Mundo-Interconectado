@@ -177,63 +177,70 @@
 	
 	\chapter{Análisis de la red}
 	\section{Descripción de la red}
-	La red de dependencias de Python estudiada es una red dirigida con \(6765\) nodos y \(36054\) aristas. \cite{Clauset_2009}
+	En la red de dependencias de Python estudiada los nodos representan las librerías mientras que las aristas son las dependencias. De esta forma, un nodo $A$ apuntará a otro nodo $B$ si depende de él $A \rightarrow B$. Si $B$, además, depende de $C$ pero $A$ lo hace a través de $B$, no existe el enlace entre $A$ y $C$. Las figuras \ref{fig:totalall} y \ref{fig:totalcenter} ilustran la red completa y un zoom de su centro, respectivamente.\\
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/TOTAL_ALL}
+		\caption{}
+		\label{fig:totalall}
+	\end{figure}
 	
 	
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\linewidth]{Imagenes/TOTAL_ALL}
-	\caption{}
-	\label{fig:totalall}
-\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/TOTAL_CENTER}
+		\caption{}
+		\label{fig:totalcenter}
+	\end{figure}
+	
+	La red analizada es dirigida con \(6765\) nodos y \(36054\) aristas. Visualmente se representa el grado de entrada de los nodos (figuras \ref{fig:inall} y \ref{fig:incenter}) y de salida (figuras \ref{fig:outall} y \ref{fig:outcenter}). La densidad es muy baja, \(0.000788\), lo que encaja con la idea de que los desarrolladores incluyen un número pequeño de dependencias en sus programas respecto del total de la red. 
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/IN_ALL}
+		\caption{}
+		\label{fig:inall}
+	\end{figure}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/IN_Center}
+		\caption{}
+		\label{fig:incenter}
+	\end{figure}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/OUT_ALL}
+		\caption{}
+		\label{fig:outall}
+	\end{figure}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/OUT_center}
+		\caption{}
+		\label{fig:outcenter}
+	\end{figure}
+	
+	De entre todos los nodos, un total de \(6763 (99.97\%)\) pertenecen a la componente gigante. Los paquetes \texttt{ansible} y \texttt{ansible-core\textasciitilde{}} pertenecen a una isla desconectada del resto del grafo. Resulta extraño que \texttt{ansible}, un paquete de automatización ampliamente utilizado en la industria para configurar servidores y servicios por lotes, no tenga dependencias de otros paquetes. 
+	\cite{Clauset_2009}
+	
+	
 
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\linewidth]{Imagenes/TOTAL_CENTER}
-	\caption{}
-	\label{fig:totalcenter}
-\end{figure}
 
 	
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1\linewidth]{Imagenes/IN_ALL}
-	\caption{}
-	\label{fig:inall}
-\end{figure}
-	
-	
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\linewidth]{Imagenes/IN_Center}
-	\caption{}
-	\label{fig:incenter}
-\end{figure}
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\linewidth]{Imagenes/OUT_ALL}
-	\caption{}
-	\label{fig:outall}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\linewidth]{Imagenes/OUT_center}
-	\caption{}
-	\label{fig:outcenter}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\linewidth]{Imagenes/COnectedComponent}
+	\includegraphics[width=1\linewidth]{Imagenes/ConectedComponent}
 	\caption{}
 	\label{fig:conectedcomponent}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1\linewidth]{Imagenes/COnected_in}
+	\includegraphics[width=1\linewidth]{Imagenes/Conected_in}
 	\caption{}
 	\label{fig:conectedin}
 \end{figure}
