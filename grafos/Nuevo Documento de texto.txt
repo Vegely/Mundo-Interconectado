@@ -1,0 +1,36 @@
+# Asumiendo que tu grafo sigue guardado en la variable 'G'
+scc = G.connected_components(mode="strong")
+
+# 1. Filtramos: Solo nos interesan los grupos con MÁS de 1 paquete (los verdaderos ciclos)
+ciclos = [isla for isla in scc if len(isla) > 1]
+
+print(f"Total de componentes iniciales: {len(scc)}")
+print(f"Total de VERDADEROS bucles circulares (tamaño > 1): {len(ciclos)}\n")
+
+if len(ciclos) > 0:
+    # 2. Calculamos la longitud media
+    longitud_media = sum(len(c) for c in ciclos) / len(ciclos)
+    tamaño_maximo = max(len(c) for c in ciclos)
+    
+    print(f"Estadísticas de los bucles circulares:")
+    print(f" - Longitud media: {longitud_media:.2f} paquetes por bucle")
+    print(f" - Bucle más masivo: {tamaño_maximo} paquetes atrapados juntos\n")
+
+    # 3. ¿Quiénes son? Vamos a ver los 3 bucles más grandes
+    # Ordenamos los ciclos de mayor a menor tamaño
+    ciclos_ordenados = sorted(ciclos, key=len, reverse=True)
+
+    print("--- LOS 3 BUCLES DE DEPENDENCIAS MÁS GRANDES ---")
+    for i, ciclo in enumerate(ciclos_ordenados[:3]):
+        # Extraemos los nombres
+        nombres = [G.vs[nodo]["id"] for nodo in ciclo]
+        
+        print(f"\n🌀 Bucle {i+1} (Contiene {len(ciclo)} paquetes):")
+        
+        # Si el bucle es gigantesco, imprimimos solo los primeros 15 para no saturar la pantalla
+        if len(nombres) > 15:
+            print(" , ".join(nombres[:15]) + " ... [y muchos más]")
+        else:
+            print(" 🔄 ".join(nombres))
+else:
+    print("¡Qué ecosistema tan sano! No hay dependencias circulares.")
