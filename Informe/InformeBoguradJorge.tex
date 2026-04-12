@@ -1,0 +1,449 @@
+\documentclass[12pt,a4paper]{report}
+
+% --- Paquetes esenciales para idioma, codificación y tipografía ---
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-tabla,es-noquoting]{babel}
+\usepackage{microtype} % Mejora el espaciado y la justificación del texto
+\usepackage[autostyle=true, spanish=spanish]{csquotes}
+\setquotestyle{english} % Forces standard " " quotes
+
+% --- Paquetes para matemáticas, imágenes y tablas ---
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs} % Para crear tablas de aspecto profesional
+\usepackage{tikz}
+\usepackage{tikz-3dplot}
+\usetikzlibrary{3d, calc}
+% ── Bibliografía IEEE con BibTeX ──────────────────────────────────────────────
+% Requiere el paquete IEEEtran.bst (incluido en la mayoría de distribuciones TeX)
+\bibliographystyle{IEEEtran}
+
+% --- Configuración de página y márgenes ---
+\usepackage{geometry}
+\geometry{
+	a4paper,
+	left=2.5cm,
+	right=2.5cm,
+	top=3cm,
+	bottom=3cm,
+}
+
+% --- Configuración de encabezados y pies de página ---
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{} % Limpia los encabezados y pies por defecto
+\fancyhead[L]{\nouppercase{\leftmark}} % Nombre del capítulo a la izquierda
+\fancyhead[R]{\thepage} % Número de página a la derecha
+\renewcommand{\headrulewidth}{0.4pt} % Línea separadora en el encabezado
+
+% --- Configuración de listings para código Python ---
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Definición de colores personalizados para el código
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.96,0.96,0.94}
+
+\lstset{
+	language=Python,
+	backgroundcolor=\color{backcolour},
+	basicstyle=\ttfamily\footnotesize,
+	keywordstyle=\color{blue}\bfseries,
+	stringstyle=\color{codepurple},
+	commentstyle=\color{codegreen},
+	numberstyle=\tiny\color{codegray},
+	numbers=left,
+	stepnumber=1,
+	numbersep=10pt,
+	breaklines=true,
+	frame=single,
+	rulecolor=\color{black!30},
+	showstringspaces=false,
+	captionpos=b,
+	tabsize=4
+}
+
+% --- Paquete para hipervínculos (debe ser el último paquete importado) ---
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue!60!black,
+	filecolor=magenta,
+	urlcolor=cyan,
+	citecolor=green!60!black,
+	pdftitle={Análisis de la Red de Dependencias de Python},
+	pdfauthor={Bogurad Barañski Barañska, Jorge Bengoa Pinedo}
+}
+
+\begin{document}
+	
+	% ==========================================
+	% PORTADA PROFESIONAL
+	% ==========================================
+	\begin{titlepage}
+		\centering
+		\vspace*{2cm}
+		
+		% Puedes añadir el logo de tu universidad aquí si lo deseas
+		% \includegraphics[width=0.3\textwidth]{logo.png}\par\vspace{1cm}
+		
+		{\scshape\LARGE Universidad Politécnica de Madrid \par}
+		\vspace{1cm}
+		{\scshape\Large Trabajo Final de MINT\par}
+		\vspace{1.5cm}
+		
+		\rule{\textwidth}{0.4pt}\par
+		\vspace{0.4cm}
+		{\huge\bfseries Análisis de la Red de Dependencias de Python\par}
+		\vspace{0.4cm}
+		\rule{\textwidth}{0.4pt}\par
+		\vspace{2cm}
+		
+		{\Large\itshape
+			Bogurad Barañski Barañska \\
+			Jorge Bengoa Pinedo\par
+		}
+		\vspace{2cm}
+		
+		\vfill
+		% Supervisado por:\par
+		% \vspace{0.2cm}
+		% {\large Dr. Nombre del Profesor\par}
+		
+		\vspace{2cm}
+		{\large \today\par}
+	\end{titlepage}
+	
+	% ==========================================
+	% ÍNDICES
+	% ==========================================
+	\pagenumbering{roman} % Números romanos para el índice
+	\tableofcontents
+	\newpage
+	
+	% Descomentar si vas a tener figuras o tablas en el reporte
+	% \listoffigures
+	% \newpage
+	% \listoftables
+	% \newpage
+	
+	\pagenumbering{arabic} % Números arábigos para el contenido
+	
+	% ==========================================
+	% CAPÍTULO 1: INTRODUCCIÓN
+	% ==========================================
+	\chapter{Introducción}
+	
+	\section{Descripción de la Red Propuesta}
+	En este trabajo se va a analizar la red de dependencias del ecosistema de paquetes de Python. La red consiste en un grafo dirigido donde los nodos representan paquetes de software y las aristas dirigidas representan las dependencias entre ellos (un paquete requiere de otro para su instalación o funcionamiento). 
+	
+	\section{Construcción de la Red}
+	La red se construye mediante un proceso de extracción de datos automatizado (\textit{web scraping}) haciendo uso de la API pública en formato JSON de PyPI mediante el script \texttt{create\_network.py}. Se parte de una lista de 10 paquetes semilla representativos de distintas áreas, y se aplica un algoritmo de búsqueda recursivo. Por cada paquete, se extraen sus dependencias directas de forma asíncrona, añadiéndolas a la cola de procesamiento hasta alcanzar el volumen deseado para el estudio. 
+	
+	\section{Herramientas Utilizadas}
+	En esta sección se detallan las características del Hardware empleado junto con las versiones del Softwarw utilizado.
+	
+	\subsection{Características del Equipo}
+	Se ha utilizado un portátil con las siguientes características:
+	\begin{itemize}
+		\item \textbf{Sistema Operativo:} Microsoft Windows 11 Home (Versión 10.0.26200)
+		\item \textbf{Procesador (CPU):} Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
+		\item \textbf{Memoria RAM:} 16 GB
+	\end{itemize}
+	
+	\subsection{Software empleado}
+	Como lenguaje de programación se ha utilizado \textbf{Python} en la versión \textbf{3.13.7}. Las librerías y dependencias principales utilizadas son:
+	\begin{itemize}
+		\item \texttt{networkx==3.6.1}: Para la construcción de la red y procesado preliminar.
+		\item \texttt{igraph==1.0.0}: Para el cálculo eficiente en grafos.
+		\item \texttt{pandas==2.3.2}: Para la estructuración y manejo de los datos.
+		\item \texttt{aiohttp==3.13.3}: Para la ejecución segura de peticiones web asíncronas a la API de PyPI durante la fase de recolección de datos.
+		\item \texttt{vispy==0.16.1}: Para el renderizado interactivo del motor de físicas del grafo, haciendo uso de la aceleración gráfica (GPU).
+		\item \texttt{numpy==2.3.3}: Para el manejo eficiente de operaciones matriciales y vectorización de las fuerzas en el motor de renderizado.
+		\item \texttt{matplotlib==3.10.7}: Para la generación visual de tablas y gráficos estáticos de soporte durante el análisis.
+	\end{itemize}
+
+	
+	\section{Objetivos del Estudio}
+	Los objetivos principales de este análisis son:
+	\begin{enumerate}
+		\item Obtener una visión macroscópica de la estructura del ecosistema de desarrollo de Python.
+		\item Identificar los paquetes \textit{hub} o nodos centrales que actúan como dependencias críticas transversales para la mayoría de los proyectos.
+		\item Detectar comunidades o clústeres de paquetes que tienden a utilizarse conjuntamente dentro de dominios de desarrollo específicos.
+	\end{enumerate}
+	
+	\chapter{Análisis de la red}
+	\section{Descripción de la red}
+	La red de dependencias de Python estudiada es una red dirigida con \(6765\) nodos y \(36054\) aristas. \cite{Clauset_2009}
+	
+	
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/TOTAL_ALL}
+	\caption{}
+	\label{fig:totalall}
+\end{figure}
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/TOTAL_CENTER}
+	\caption{}
+	\label{fig:totalcenter}
+\end{figure}
+
+	
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/IN_ALL}
+	\caption{}
+	\label{fig:inall}
+\end{figure}
+	
+	
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/IN_Center}
+	\caption{}
+	\label{fig:incenter}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/OUT_ALL}
+	\caption{}
+	\label{fig:outall}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/OUT_center}
+	\caption{}
+	\label{fig:outcenter}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/COnectedComponent}
+	\caption{}
+	\label{fig:conectedcomponent}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/COnected_in}
+	\caption{}
+	\label{fig:conectedin}
+\end{figure}
+
+	\section{Análisis de centralidad}
+	\begin{enumerate}
+		\item \textbf{PageRank}: Importancia global de cada nodo en función de la calidad de sus referencias entrantes. Paleta \textit{plasma}.
+		\item \textbf{Centralidad de intermediación} (\textit{betweenness}): Frecuencia con la que un nodo aparece en los caminos más cortos entre pares de nodos. Paleta degradada de negro a blanco pasando por rojo y amarillo (\textit{fire}).
+		\item \textbf{Centralidad de cercanía} (\textit{closeness}): Inverso de la distancia media al resto de nodos alcanzables. Paleta degradada de azul oscuro a cian (\textit{ice}).
+		\item \textbf{Destacado de ciclos}: Modo especializado descrito en la Sección \ref{sec:ciclos}.
+		\item \textbf{Comunidades (Louvain)}: Cada nodo se colorea según la comunidad a la que pertenece, detectada mediante el algoritmo de Louvain aplicado sobre el grafo no dirigido. A cada comunidad se le asigna un tono único extraído de la misma paleta HSV uniforme utilizada en el modo de ciclos, facilitando la comparación visual entre ambas estructuras.
+	\end{enumerate}
+	
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/PageRank_full}
+	\caption{}
+	\label{fig:pagerankfull}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/PageRank_In}
+	\caption{}
+	\label{fig:pagerankin}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/BTWEENESSOUT}
+	\caption{}
+	\label{fig:btweenessout}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/BTWEENESIN}
+	\caption{}
+	\label{fig:btweenesin}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/Closeness_In}
+	\caption{}
+	\label{fig:closenessin}
+\end{figure}
+
+
+	
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/Closeness_Out}
+	\caption{}
+	\label{fig:closenessout}
+\end{figure}
+	\section{Análisis de comunidades}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/Comunidades}
+	\caption{}
+	\label{fig:comunidades}
+\end{figure}
+
+	\chapter{Herramienta de visualización de la red}
+	
+	Para poder explorar de forma interactiva la red de dependencias de Python se desarrolla una herramienta de visualización en tiempo real basada en un motor de físicas implementado íntegramente en Python. La herramienta, recogida en el script \texttt{visualizer.py}. Mediante esta aplicación se puede navegar a través de la red, inspeccionar diferentes métricas en función del nodo y ver como va variando la estructura de la red en función de las físicas escogidas con mejor rendimiento para redes de este tamaño que en Gephi.
+	
+	\section{Arquitectura general}
+
+	
+	El diseño de la herramienta se basa en las siguientes librerías principalmente:
+	
+	\begin{itemize}
+		\item \texttt{igraph}: se utiliza para cargar el grafo desde el fichero \texttt{pypi\_multiseed\_10k.graphml} y del cálculo de la mayoría de métricas relacionadas con grafos vistas en clase.
+		\item \texttt{vispy}: se utiliza como motor de renderizado interactivo que hace uso de OpenGL mediante aceleración por GPU y para capturar los inputs de teclado y ratón.
+		\item \texttt{numpy}: se utiliza para la vectorización de todas las operaciones del motor de físicas y del cómputo de colores por nodo de manera eficiente.
+	\end{itemize}
+	
+	La resolución del monitor se consulta en tiempo de ejecución a través de \texttt{glfw} antes de crear la ventana porque para que se vea adecuadamente la leyenda es necesario trabajar a pantalla completa. Se ha utilizado esta librería para el renderizado porque entre las distintas librerías dentro de \texttt{vispy} es la que mejor rendimiento ha dado en el equipo utilizado.
+	
+	\section{Cálculos preliminares}
+	
+	Para calcular una disposición inicial \enquote{razonable} de los nodos de manera eficiente, se emplea el algoritmo \textit{DrL} (Distributed Recursive Layout) integrado en la librería \texttt{igraph}. Aunque los reportes técnicos originales de este método ya no son de acceso público, su funcionamiento se encuentra documentado en el artículo correspondiente un algoritmo que lo mejora, la herramienta OpenOrd \cite{Martin2011OpenOrd}. En la figura \ref{fig:initial} se puede ver la distribución inicial que genera este algoritmo.
+	\newline
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/Initial}
+		\caption{Representación visual de la red tras aplicar el algoritmo DrL.}
+		\label{fig:initial}
+	\end{figure}
+		
+	El tamaño de cada nodo se determina mediante una normalización logarítmica del grado total para que los nodos de mayor tamaño sean más visibles, pero dejando un tamaño mínimo de 4 píxeles.
+	
+	\begin{equation}
+		s_i = 21 \cdot \hat{G}_i + 4, \qquad \hat{G}_i = \frac{\log(1 + G_i^{\text{in}} + G_i^{\text{out}})}{\max_j \log(1 + G_j^{\text{in}} + G_j^{\text{out}})}
+	\end{equation}
+	donde \(s_i\) es el tamaño del nodo y \(G\) es el grado de entrada/salida de cada nodo.
+	\newline
+	
+	En cuanto a las aristas para que los nodos se pudieran visualizar correctamente, estas se pintan \enquote{por debajo} en el lienzo por lo que las flechas de dirección no son fácilmente visibles. No obstante, como se puede alternar el esquema de colores para ver los grados de entrada y salida, al igual que hacer click en ellos, se puede saber fácilmente la direccionalidad de las flechas a nivel macroscópico. Además, para ver mejor la concentración de aristas cuando estas se superponen se reduce su transparencia por lo que se ve su color más marcado.
+	
+\section{Motor de físicas}
+Para hacer la visualización más intuitiva del grafo en la herramienta se incorpora un motor de físicas basado en fuerzas que permite reorganizar el grafo en tiempo real. La simulación puede activarse y reanudarse con la tecla \texttt{ESPACIO}, y su velocidad se controla mediante un multiplicador ajustable. En cada fotograma (\texttt{on\_timer\_tick}), la fuerza neta $\mathbf{F}_i = \mathbf{F}_{\text{H}, i} + \mathbf{F}_{\text{g}, i} + \mathbf{F}_{\text{r}, i}$ aplicada sobre cada nodo $i$ con posición $\mathbf{p}_i$ (\texttt{pos}) se calcula como la suma de tres fuerzas principales:
+
+\begin{itemize}
+	\item \textbf{Fuerza de Hooke}: las aristas actúan como muelles que atraen los nodos conectados entre sí. Para un nodo $i$, la fuerza ejercida por el conjunto de sus nodos adyacentes $\mathcal{N}(i)$ se define como:
+	$$\mathbf{F}_{\text{H}, i} = \sum_{j \in \mathcal{N}(i)} k_s (\mathbf{p}_j - \mathbf{p}_i)$$
+	donde $k_s$ es \texttt{spring\_strength}. En la implementación, esto se vectoriza calculando la diferencia direccional (\texttt{p1 - p0}) y aplicando la fuerza simétricamente en ambos extremos de la arista.
+	
+	\item \textbf{Fuerza gravitatoria}: atrae a cada nodo hacia el origen de coordenadas $(0,0)$ con una intensidad proporcional a su grado total, manteniendo el grafo centrado y evitando la dispersión indefinida de los nodos más periféricos:
+	$$\mathbf{F}_{\text{g}, i} = - k_g G_i \mathbf{p}_i$$
+	donde $k_g$ es \texttt{gravity} y $G_i$ corresponde a su grado normalizado (\texttt{norm\_degrees\_2d}).
+	
+	\item \textbf{Fuerza repulsiva}: para que el programa no se congele al calcular la fuerza de repulsión de manera tradicional (complejidad $O(N^2)$) se calcula en cada frame las fuerzas de repulsión para un subconjunto $\mathcal{R}$ de tamaño $N_R = 300$ (\texttt{sample\_size}). De esta manera, aunque el calculo no es del todo exacto, se agilizan los cálculos y se asume que la distribución visual final no variaría demasiado en el equilibrio:
+	$$\mathbf{F}_{\text{r}, i} = \sum_{j \in \mathcal{R}} k_r \frac{\mathbf{p}_i - \mathbf{p}_j}{\|\mathbf{p}_i - \mathbf{p}_j\|^2 + 1}$$
+	donde $k_r$ es outward\_push. Se añade un \(+1\) en el denominador para evitar singularidades en el caso de que dos nodos estén superpuestos.
+\end{itemize}
+
+A partir de las fuerzas se calcula la velocidad en cada frame asumiendo un $\delta t =1$ y masa unitaria mediante integración numérica con un coeficiente de amortiguamiento $\mu$ caracterizado por la variable \texttt{"friction"} y limitada por una velocidad máxima (\texttt{"max\_speed"}).
+$$\mathbf{v}_i^{(t+1)} = \left(\mathbf{v}_i^{(t)} + \mathbf{F}_{\text{total}, i}\right) \cdot \mu$$
+
+Por último, se calculan las posiciones de manera análoga a las velocidad mediante integración discreta:
+$$\mathbf{p}_i^{(t+1)} = \mathbf{p}_i^{(t)} + \mathbf{v}_i^{(t+1)}$$
+
+De esta manera se puede ver como queda el resultado de aplicar el algoritmo tal y como se puede ver en la figura \ref{fig:full} en comparación con el estado inicial en la figura \ref{fig:initial}.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/Full}
+	\caption{Representación de la red tras ejecutar el motor de físicas sobre la red hasta llegar al equilibrio.}
+	\label{fig:full}
+\end{figure}
+	
+	\section{Métricas y modos de color}
+	Para agilizar la visualización de los datos en función de diferentes métricas o criterios se precalculan diferentes métricas y se almacenan normalizadas para representarse en diferentes escalas de color. Para alternar entre cada una de las visualizaciones se utilizan los números del 1 al 8. Los modos de color son los siguientes:
+	
+	\begin{enumerate}
+		\item \textbf{PageRank}: con paleta \textit{plasma}.
+		\item \textbf{Grado de entrada}: con paleta \textit{inferno}.
+		\item \textbf{Grado de salida}: con paleta \textit{viridis}.
+		\item \textbf{Grado total}: con paleta \textit{magma}.
+		\item \textbf{Centralidad de intermediación} se utiliza una paleta con un degradado de negro a blanco pasando por rojo y amarillo.
+		\item \textbf{Centralidad de cercanía} se utiliza una paleta con un degradado de azul oscuro a cian.
+		\item \textbf{Destacado de ciclos}: se utiliza el método de la sección \ref{sec:ciclos}.
+		\item \textbf{Comunidades (Louvain)}: cada nodo se colorea según la comunidad a la que pertenece.
+	\end{enumerate}
+	
+	Las métricas de grado, PageRank, intermediación y cercania se normalizan en escala logarítmica (\(\log(1+x)\)).
+	
+	\section{Modo de visualización de ciclos}
+	\label{sec:ciclos}
+	
+	El modo 7 está dedicado al análisis de las componentes fuertemente conexas (SCC) del grafo, es decir, los conjuntos de paquetes que forman dependencias circulares entre sí.
+	\newline
+	
+	Al activar este modo, se calculan todas las SCC con más de un nodo. A cada ciclo se le asigna un tono único extraído de una paleta generada distribuyendo uniformemente los matices del espacio HSV:
+	
+	\begin{equation}
+		H_k = \frac{k}{N_{\text{ciclos}}}, \quad k = 0, 1, \ldots, N_{\text{ciclos}} - 1
+	\end{equation}
+	
+	Los nodos que no pertenecen a ningún ciclo se muestran en gris oscuro. Por otro lado, para añadir claridad se reestructura la coloración de las aristas:	
+	\begin{itemize}
+		\item \textbf{Aristas intraciclo}: conexiones entre nodos del mismo ciclo. Se colorean con el tono de su ciclo, con transparencia parcial, de forma que las aristas interpolan visualmente entre los colores de los nodos que unen.
+		\item \textbf{Aristas interciclo}: conexiones que van de un ciclo a otro ciclo distinto. Se muestran en dorado semitransparente.
+		\item \textbf{Aristas al resto}: las conexiones que involucran al menos un nodo fuera de cualquier ciclo se ocultan.
+	\end{itemize}
+	
+	\section{Inversión de colores}
+	
+	La tecla \texttt{I} permite invertir la paleta de colores de toda la visualización. Se invierten los canales RGB de los nodos, el fondo pasa de negro a blanco y los colores del texto del se adaptan para mantener la legibilidad. Las aristas interciclo cambian del dorado al azul-violeta. Esta función resulta útil para capturas de pantalla.
+	
+	\section{Interacción}
+	
+	\subsection{Controles de teclado}
+	
+	La totalidad de los parámetros de la simulación y la visualización es ajustable sin interrumpir la ejecución. La Tabla \ref{tab:controles} resume los atajos disponibles.
+	
+	\begin{table}[H]
+		\centering
+		\caption{Atajos de teclado de la herramienta de visualización.}
+		\label{tab:controles}
+		\begin{tabular}{@{}ll@{}}
+			\toprule
+			\textbf{Tecla} & \textbf{Acción} \\
+			\midrule
+			\texttt{ESPACIO}       & Activar / pausar la simulación de físicas \\
+			\texttt{1}--\texttt{8} & Cambiar el modo de coloración de nodos \\
+			\texttt{I}             & Invertir la paleta de colores \\
+			\texttt{W / S}         & Aumentar / reducir la rigidez de los muelles \\
+			\texttt{A / D}         & Reducir / aumentar la fuerza de repulsión \\
+			\texttt{Q / E}         & Aumentar / reducir la gravedad \\
+			\texttt{[ / ]}         & Dividir / multiplicar por 10 el multiplicador\\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	
+	\subsection{Inspección de nodos}
+	
+	Al hacer clic con el botón sobre un nodo se identifica el nodo más cercano al clic. Esto se realiza transformando las coordenadas de la pantalla al espacio del grafo mediante la inversa de la transformación de la cámara. Si la distancia al nodo más próximo es inferior a un umbral, se muestra en el texto superior izquierdo la siguiente información:
+	
+	\begin{itemize}
+		\item Nombre del paquete.
+		\item Grado de entrada y salida.
+		\item Valor de la métrica activa para ese nodo.
+		\item Identificador y tamaño del ciclo al que pertenece, o indicación de que el nodo no forma parte de ninguno.
+		\item Identificador de la comunidad Louvain a la que pertenece el nodo.
+	\end{itemize}
+	\chapter{Conclusiones}
+	
+	% ── Bibliografía ─────────────────────────────────────────────────────────────
+	\bibliography{referencias}   % n
+
+\end{document}
