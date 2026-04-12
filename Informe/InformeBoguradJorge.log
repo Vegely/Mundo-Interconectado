@@ -906,4 +906,240 @@ LaTeX Info: Redefining \% on input line 205.
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
 (fancyhdr)                \setlength{\headheight}{14.49998pt}.
-(fancyhdr)                You might also make \
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[4]
+File: Imagenes/IN_Center.png Graphic file (type bmp)
+<Imagenes/IN_Center.png>
+File: Imagenes/OUT_ALL.png Graphic file (type bmp)
+<Imagenes/OUT_ALL.png>
+LaTeX Info: Redefining \. on input line 219.
+LaTeX Info: Redefining \% on input line 219.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[5]
+File: Imagenes/OUT_center.png Graphic file (type bmp)
+<Imagenes/OUT_center.png>
+LaTeX Info: Redefining \. on input line 229.
+LaTeX Info: Redefining \% on input line 229.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[6]
+File: Imagenes/ConectedComponent.png Graphic file (type bmp)
+<Imagenes/ConectedComponent.png>
+File: Imagenes/Conected_in.png Graphic file (type bmp)
+<Imagenes/Conected_in.png>
+LaTeX Info: Redefining \. on input line 250.
+LaTeX Info: Redefining \% on input line 250.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[7]
+File: Imagenes/PageRank_full.png Graphic file (type bmp)
+<Imagenes/PageRank_full.png>
+File: Imagenes/PageRank_In.png Graphic file (type bmp)
+<Imagenes/PageRank_In.png>
+File: Imagenes/BTWEENESSOUT.png Graphic file (type bmp)
+<Imagenes/BTWEENESSOUT.png>
+LaTeX Info: Redefining \. on input line 273.
+LaTeX Info: Redefining \% on input line 273.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[8]
+File: Imagenes/BTWEENESIN.png Graphic file (type bmp)
+<Imagenes/BTWEENESIN.png>
+File: Imagenes/Closeness_In.png Graphic file (type bmp)
+<Imagenes/Closeness_In.png>
+LaTeX Info: Redefining \. on input line 285.
+LaTeX Info: Redefining \% on input line 285.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[9]
+File: Imagenes/Closeness_Out.png Graphic file (type bmp)
+<Imagenes/Closeness_Out.png>
+LaTeX Info: Redefining \. on input line 295.
+LaTeX Info: Redefining \% on input line 295.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[10]
+File: Imagenes/Comunidades.png Graphic file (type bmp)
+<Imagenes/Comunidades.png>
+LaTeX Info: Redefining \. on input line 303.
+LaTeX Info: Redefining \% on input line 303.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[11]
+LaTeX Info: Redefining \. on input line 304.
+LaTeX Info: Redefining \% on input line 304.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[12]
+Capítulo 3.
+
+Overfull \hbox (3.09183pt too wide) in paragraph at lines 314--315
+[]\TU/lmtt/m/n/12 igraph\TU/lmr/m/n/12 : se utiliza para cargar el grafo desde 
+el fichero \TU/lmtt/m/n/12 pypi_multiseed_10k.graphml
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 323--325
+
+ []
+
+[13
+
+]
+File: Imagenes/Initial.png Graphic file (type bmp)
+<Imagenes/Initial.png>
+
+Underfull \hbox (badness 10000) in paragraph at lines 337--340
+
+ []
+
+LaTeX Info: Redefining \. on input line 345.
+LaTeX Info: Redefining \% on input line 345.
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[14]
+File: Imagenes/Full.png Graphic file (type bmp)
+<Imagenes/Full.png>
+LaTeX Info: Redefining \. on input line 377.
+LaTeX Info: Redefining \% on input line 377.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[15]
+Underfull \hbox (badness 10000) in paragraph at lines 394--396
+
+ []
+
+LaTeX Info: Redefining \. on input line 396.
+LaTeX Info: Redefining \% on input line 396.
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[16]
+LaTeX Info: Redefining \. on input line 438.
+LaTeX Info: Redefining \% on input line 438.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[17]
+LaTeX Info: Redefining \. on input line 450.
+LaTeX Info: Redefining \% on input line 450.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[18]
+Capítulo 4.
+(./InformeBoguradJorge.bbl [19
+
+]) [20
+
+] (./InformeBoguradJorge.aux
+LaTeX Info: Redefining \. on input line 9.
+LaTeX Info: Redefining \% on input line 9.
+)
+ ***********
+LaTeX2e <2023-11-01> patch level 1
+L3 programming layer <2024-01-22>
+ ***********
+Package rerunfilecheck Info: File `InformeBoguradJorge.out' has not changed.
+(rerunfilecheck)             Checksum: D2F558486AB4249B2F70C947503CBDB0;3721.
+ ) 
+Here is how much of TeX's memory you used:
+ 26938 strings out of 474879
+ 497528 string characters out of 5763781
+ 1930630 words of memory out of 5000000
+ 48517 multiletter control sequences out of 15000+600000
+ 564130 words of font info for 74 fonts, out of 8000000 for 9000
+ 1348 hyphenation exceptions out of 8191
+ 84i,11n,93p,1016b,478s stack positions out of 10000i,1000n,20000p,200000b,200000s
+
+Output written on InformeBoguradJorge.pdf (22 pages).
