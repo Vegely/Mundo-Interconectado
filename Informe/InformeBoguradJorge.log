@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999998 (MiKTeX 26.1) (preloaded format=xelatex 2026.3.11)  13 APR 2026 14:37
+This is XeTeX, Version 3.141592653-2.6-0.999998 (MiKTeX 26.1) (preloaded format=xelatex 2026.3.11)  13 APR 2026 15:05
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1062,12 +1062,8 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 [8]
 File: Imagenes/Conected_in.png Graphic file (type bmp)
 <Imagenes/Conected_in.png>
-File: Imagenes/PageRank_full.png Graphic file (type bmp)
-<Imagenes/PageRank_full.png>
-File: Imagenes/PageRank_In.png Graphic file (type bmp)
-<Imagenes/PageRank_In.png>
-LaTeX Info: Redefining \. on input line 275.
-LaTeX Info: Redefining \% on input line 275.
+LaTeX Info: Redefining \. on input line 263.
+LaTeX Info: Redefining \% on input line 263.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -1077,12 +1073,14 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [9]
+File: Imagenes/PageRank_full.png Graphic file (type bmp)
+<Imagenes/PageRank_full.png>
+File: Imagenes/PageRank_In.png Graphic file (type bmp)
+<Imagenes/PageRank_In.png>
 File: Imagenes/BTWEENESSOUT.png Graphic file (type bmp)
 <Imagenes/BTWEENESSOUT.png>
-File: Imagenes/BTWEENESIN.png Graphic file (type bmp)
-<Imagenes/BTWEENESIN.png>
-LaTeX Info: Redefining \. on input line 287.
-LaTeX Info: Redefining \% on input line 287.
+LaTeX Info: Redefining \. on input line 283.
+LaTeX Info: Redefining \% on input line 283.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -1092,10 +1090,12 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [10]
+File: Imagenes/BTWEENESIN.png Graphic file (type bmp)
+<Imagenes/BTWEENESIN.png>
 File: Imagenes/Closeness_In.png Graphic file (type bmp)
 <Imagenes/Closeness_In.png>
-LaTeX Info: Redefining \. on input line 294.
-LaTeX Info: Redefining \% on input line 294.
+LaTeX Info: Redefining \. on input line 295.
+LaTeX Info: Redefining \% on input line 295.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -1107,10 +1107,8 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 [11]
 File: Imagenes/Closeness_Out.png Graphic file (type bmp)
 <Imagenes/Closeness_Out.png>
-File: Imagenes/Comunidades.png Graphic file (type bmp)
-<Imagenes/Comunidades.png>
-LaTeX Info: Redefining \. on input line 310.
-LaTeX Info: Redefining \% on input line 310.
+LaTeX Info: Redefining \. on input line 305.
+LaTeX Info: Redefining \% on input line 305.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -1120,8 +1118,10 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [12]
-LaTeX Info: Redefining \. on input line 312.
-LaTeX Info: Redefining \% on input line 312.
+File: Imagenes/Comunidades.png Graphic file (type bmp)
+<Imagenes/Comunidades.png>
+LaTeX Info: Redefining \. on input line 313.
+LaTeX Info: Redefining \% on input line 313.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -1131,30 +1131,9 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [13]
-Capítulo 3.
+LaTeX Info: Redefining \. on input line 314.
+LaTeX Info: Redefining \% on input line 314.
 
-Overfull \hbox (3.09183pt too wide) in paragraph at lines 322--323
-[]\TU/lmtt/m/n/12 igraph\TU/lmr/m/n/12 : se utiliza para cargar el grafo desde 
-el fichero \TU/lmtt/m/n/12 pypi_multiseed_10k.graphml
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 331--333
-
- []
-
-[14
-
-]
-File: Imagenes/Initial.png Graphic file (type bmp)
-<Imagenes/Initial.png>
-
-Underfull \hbox (badness 10000) in paragraph at lines 345--348
-
- []
-
-LaTeX Info: Redefining \. on input line 353.
-LaTeX Info: Redefining \% on input line 353.
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -1162,12 +1141,31 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[15]
-File: Imagenes/Full.png Graphic file (type bmp)
-<Imagenes/Full.png>
-LaTeX Info: Redefining \. on input line 385.
-LaTeX Info: Redefining \% on input line 385.
+[14]
+Capítulo 3.
 
+Overfull \hbox (3.09183pt too wide) in paragraph at lines 324--325
+[]\TU/lmtt/m/n/12 igraph\TU/lmr/m/n/12 : se utiliza para cargar el grafo desde 
+el fichero \TU/lmtt/m/n/12 pypi_multiseed_10k.graphml
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 333--335
+
+ []
+
+[15
+
+]
+File: Imagenes/Initial.png Graphic file (type bmp)
+<Imagenes/Initial.png>
+
+Underfull \hbox (badness 10000) in paragraph at lines 347--350
+
+ []
+
+LaTeX Info: Redefining \. on input line 355.
+LaTeX Info: Redefining \% on input line 355.
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -1176,12 +1174,11 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [16]
-Underfull \hbox (badness 10000) in paragraph at lines 402--404
+File: Imagenes/Full.png Graphic file (type bmp)
+<Imagenes/Full.png>
+LaTeX Info: Redefining \. on input line 387.
+LaTeX Info: Redefining \% on input line 387.
 
- []
-
-LaTeX Info: Redefining \. on input line 404.
-LaTeX Info: Redefining \% on input line 404.
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -1190,9 +1187,12 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [17]
-LaTeX Info: Redefining \. on input line 446.
-LaTeX Info: Redefining \% on input line 446.
+Underfull \hbox (badness 10000) in paragraph at lines 404--406
 
+ []
+
+LaTeX Info: Redefining \. on input line 406.
+LaTeX Info: Redefining \% on input line 406.
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -1201,8 +1201,8 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [18]
-LaTeX Info: Redefining \. on input line 458.
-LaTeX Info: Redefining \% on input line 458.
+LaTeX Info: Redefining \. on input line 448.
+LaTeX Info: Redefining \% on input line 448.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -1212,10 +1212,21 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [19]
-Capítulo 4.
-(InformeBoguradJorge.bbl [20
+LaTeX Info: Redefining \. on input line 460.
+LaTeX Info: Redefining \% on input line 460.
 
-]) [21
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[20]
+Capítulo 4.
+(InformeBoguradJorge.bbl [21
+
+]) [22
 
 ] (InformeBoguradJorge.aux
 LaTeX Info: Redefining \. on input line 9.
@@ -1235,6 +1246,6 @@ Here is how much of TeX's memory you used:
  55453 multiletter control sequences out of 15000+600000
  635497 words of font info for 88 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 84i,11n,104p,1859b,559s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,11n,104p,1859b,638s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on InformeBoguradJorge.pdf (23 pages).
+Output written on InformeBoguradJorge.pdf (24 pages).
