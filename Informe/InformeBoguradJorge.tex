@@ -428,52 +428,79 @@
 
 
 	\section{Análisis de centralidad}
-	Una vez realizado el análisis preliminar de la red se estudian las propiedades de centralidad de la misma para ver qué paquetes son los más importantes dentro de la red de dependencias de Python.
+	Una vez realizado el análisis preliminar de la red se estudian las propiedades de centralidad de la misma para ver qué paquetes son los más importantes dentro de la red de dependencias de Python. Para realizar este estudio se estudian las tres magnitudes estudiadas en clase: PageRank, Centralidad de Intermediación y Centralidad de Cercania.
+	
+	
+
+
+	\subsection{PageRank}
+	Como se trabaja con un grafo dirigido, esta medida de centralidad es de aplicación directa al análisis de trabajo. Como el PageRank se puede entender como una medida de cual es la probabilidad de acabar en un paquete al realizar un camino aleatorio markoviano sobre el grafo con saltos aleatorios con una probabilidad $\theta=0.85$. Por tanto, puede entenderse que 
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/PageRank_full}
+		\caption{}
+		\label{fig:pagerankfull}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/PageRank_In}
+		\caption{}
+		\label{fig:pagerankin}
+	\end{figure}
+	\subsection{Centralidad de Intermediación}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/BTWEENESSOUT}
+		\caption{}
+		\label{fig:btweenessout}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/BTWEENESIN}
+		\caption{}
+		\label{fig:btweenesin}
+	\end{figure}
+	
+	\subsection{Centralidad de Cercania}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/Closeness_In}
+		\caption{}
+		\label{fig:closenessin}
+	\end{figure}
+	
+	
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/Closeness_Out}
+		\caption{}
+		\label{fig:closenessout}
+	\end{figure}
+	\subsection{Distribuciones de Centralidad}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/centrality_distributions_linear}
+		\caption{}
+		\label{fig:centralitydistributionslinear}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/centrality_distributions_loglog}
+		\caption{}
+		\label{fig:centralitydistributionsloglog}
+	\end{figure}
+	
 	\begin{enumerate}
 		\item \textbf{PageRank}: Importancia global de cada nodo en función de la calidad de sus referencias entrantes. Paleta \textit{plasma}.
 		\item \textbf{Centralidad de intermediación} (\textit{betweenness}): Frecuencia con la que un nodo aparece en los caminos más cortos entre pares de nodos. Paleta degradada de negro a blanco pasando por rojo y amarillo (\textit{fire}).
 		\item \textbf{Centralidad de cercanía} (\textit{closeness}): Inverso de la distancia media al resto de nodos alcanzables. Paleta degradada de azul oscuro a cian (\textit{ice}).
 	\end{enumerate}
 	
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\linewidth]{Imagenes/PageRank_full}
-	\caption{}
-	\label{fig:pagerankfull}
-\end{figure}
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\linewidth]{Imagenes/PageRank_In}
-	\caption{}
-	\label{fig:pagerankin}
-\end{figure}
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\linewidth]{Imagenes/BTWEENESSOUT}
-	\caption{}
-	\label{fig:btweenessout}
-\end{figure}
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\linewidth]{Imagenes/BTWEENESIN}
-	\caption{}
-	\label{fig:btweenesin}
-\end{figure}
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\linewidth]{Imagenes/Closeness_In}
-	\caption{}
-	\label{fig:closenessin}
-\end{figure}
 
 
-	
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\linewidth]{Imagenes/Closeness_Out}
-	\caption{}
-	\label{fig:closenessout}
-\end{figure}
+
 	\section{Análisis de comunidades}
  \textbf{Comunidades (Louvain)} \cite{Blondel_2008}: Cada nodo se colorea según la comunidad a la que pertenece, detectada mediante el algoritmo de Louvain aplicado sobre el grafo no dirigido. A cada comunidad se le asigna un tono único extraído de la misma paleta HSV uniforme utilizada en el modo de ciclos, facilitando la comparación visual entre ambas estructuras.
 \begin{figure}[H]
