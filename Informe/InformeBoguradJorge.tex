@@ -15,6 +15,7 @@
 \usepackage{tikz}
 \usepackage{tikz-3dplot}
 \usetikzlibrary{3d, calc}
+\usepackage{multirow}
 % ── Bibliografía IEEE con BibTeX ──────────────────────────────────────────────
 % Requiere el paquete IEEEtran.bst (incluido en la mayoría de distribuciones TeX)
 \bibliographystyle{IEEEtran}
@@ -194,7 +195,11 @@
 		\label{fig:totalcenter}
 	\end{figure}
 	
-	La red analizada es dirigida con \(6765\) nodos y \(36054\) aristas. Visualmente se representa el grado de entrada de los nodos (figuras \ref{fig:inall} y \ref{fig:incenter}) y de salida (figuras \ref{fig:outall} y \ref{fig:outcenter}). La densidad es muy baja, \(0.000788\), lo que encaja con la idea de que los desarrolladores incluyen un número pequeño de dependencias en sus programas respecto del total de la red. 
+	La red analizada es dirigida con \(6765\) nodos y \(36054\) aristas. Visualmente se representa el grado de entrada de los nodos (figuras \ref{fig:inall} y \ref{fig:incenter}) y de salida (figuras \ref{fig:outall} y \ref{fig:outcenter}). La densidad es muy baja, \(0.000788\), lo que encaja con la idea de que los desarrolladores incluyen un número pequeño de dependencias en sus programas respecto del total de la red. \\
+	
+	El coeficiente de clustering medio es de 0.3170. Dado que es un valor muy superior a la densidad de la red se puede decir que el clustering es alto. La propiedad de mundo pequeño se ve perjudicada, pues las dependencias de un paquete tienen mayor probabilidad de a depender entre sí. Posiblemente, las distancias entre distintos puntos de la red tiendan a ser grandes. Además, el coeficiente global de clustering es 0.03584. Esto sugiere que los paquetes forman grupos aislados que se conectan a través de hubs con muchas conexiones. Sin embargo, los nodos de un grupo no están conectados directamente a los de otro grupo. \\
+	
+	El comportamiento descrito tiene sentido desde la perspectiva del desarrollo de paquetes. Los hubs son librerías conocidas que dan acceso a \textit{frameworks} enteros. Los desarrolladores incluyen los hubs en sus programas, no cada una de las dependencias menos conocidas. Los paquetes dentro de un mismo \textit{framework} tienen un objetivo en común, por lo que interactúan entre sí para conseguirlo. Adicionalmente, podrán interactuar con hubs a otros \textit{frameworks}, pero no directamente con cada una de las librerías que contienen.
 	
 	\begin{figure}[H]
 		\centering
@@ -253,7 +258,174 @@
 	
 	En la componente gigante extraída anteriormente se analizan algunas métricas adicionales. El diámetro es 25, lo que implica que en el peor de los casos esa será la profundidad de las dependencias de un paquete\footnote{No se debe asociar el diámetro al número de dependencias, sino a la profundidad de las mismas. Por ejemplo, un paquete podría depender de varios paquetes que no dependen de nadie más, en cuyo caso la profundidad sería 1 pero el número de dependencias sería mayor que 1.}. El radio se distingue según sea de entrada o de salida. El valor del primero es 6 y se relaciona con la accesibilidad de los paquetes básicos. Cualquier paquete dependiente del paquete menos excéntrico, lo alcanzará en un máximo de 6 pasos. El valor del segundo es 13 y se relaciona con la facilidad de instalar paquetes. En el mejor de los casos (paquete mejor posicionado), se requiere una instalación de profundidad 13.
 	
-\cite{Clauset_2009}
+	\subsection{Distribución de grado}
+	Este apartado se ha realizado conforme al artículo \cite{Clauset_2009}. \\
+	
+	\subsubsection{Estimación de parámetros}
+	El objetivo es verificar si la distribución de grado sigue una ley de potencias. Dado un valor $k_{mín}$ a partir del cual se empieza a cumplir la ley de potencias, se estima el valor de $\alpha$ por máxima verosimilitud resolviendo la ecuación:
+	
+	\begin{equation}
+	\frac{\zeta'(\hat{\alpha}, x_{\min})}{\zeta(\hat{\alpha}, x_{\min})} = -\frac{1}{n} \sum_{i=1}^{n} \ln x_i
+	\end{equation}
+	
+	donde $\zeta(\alpha, x_{mín})$ es la función zeta generalizada de Hurtwitz. En vez de resolver la ecuación anterior de forma numérica se puede obtener una aproximación a partir de la siguiente expresión:
+	
+	\begin{equation}
+	\hat{\alpha} \approx 1 + n \left[\sum_{i=1}^n \ln \frac{x_i}{x_{mín} - 0.5}\right]
+	\end{equation}
+	
+	donde $n$ es el número de paquetes en la cola y $x_i$ es el grado de la $i$-ésima observación. La desviación típica de $\hat{\alpha}$ en tiempo discreto se calcula con la fórmula:
+	
+	\begin{equation}
+	\sigma = \frac{1}{\sqrt{n \left[ \frac{\zeta''(\hat{\alpha}, x_{min})}{\zeta(\hat{\alpha}, x_{min})} - \left( \frac{\zeta'(\hat{\alpha}, x_{min})}{\zeta(\hat{\alpha}, x_{min})} \right)^2 \right]}}
+	\end{equation}
+	
+	No obstante, si el número de nodos en la cola es alto se puede aproximar por:
+	
+	\begin{equation}
+	\hat{\sigma} \approx \frac{\hat{\alpha} - 1}{\sqrt{n}}
+	\end{equation}
+	
+	La elección del valor de $x_{mín}$ se hace por \textit{grid search}. Es decir, se obtiene el estimador de máxima verosimilitud de $\alpha$ para cada valor posible de $x_{mín}$ y se selecciona el que minimice el estadístico de Kolmogorov-Smirnov:
+	
+	\begin{equation}
+	KS = \max_{x \ge x_{mín}} |S(x) - P(x)|
+	\end{equation} 
+	
+	donde $S(x)$ es la función de distribución empírica de la cola de los datos disponibles y $P(x)$ es la función de distribución teórica de la ley de potencias. Si el valor de $x_{mín}$ es alto se tendrán pocos valores en la cola y el ajuste será deficiente debido al ruido estadístico. Si es bajo, se estará modelando el parte del cuerpo y la cola con una distribución que describe solo la cola. Entre medias se encuentra el valor óptimo que se pretende estimar, $\hat{x}_{mín}$. \\
+	
+	La incertidumbre asociada a $\hat{x}_{mín}$ se cuantifica empleando \textit{bootstrapping} no paramétrico. Se construyen conjuntos de datos sintéticos mediante muestreo con reemplazo sobre el conjunto original y se busca $\hat{x}_{mín}$ en cada caso con el método explicado anteriormente. La incertidumbre asociada a $\hat{x}_{mín}$ es la desviación típica sobre los conjuntos sintéticos. 
+	
+	\subsubsection{Tests de bondad de ajuste}	
+	Los métodos anteriores no explican la plausibilidad de la ley de potencias calculada. El problema es complejo por dos razones. La primera es que incluso las propias realizaciones a partir de una ley de potencias dadas podrían no seguir dicha ley debido al proceso de muestreo. La segunda es que se pueden dar casos en los que la red proviene de otra distribución pero su realización particular sigue una ley de potencias. Se busca plantear un test de bondad de ajuste que permita discriminar entre fluctuaciones aleatorias asociadas al muestreo y distribuciones distintas. El procedimiento se basa en generar varios conjuntos de datos sintéticos y calcular la proporción de veces que el estadístico de Kolmogorov-Smirnov es menor en los datos empíricos que en los generados artificialmente. Este cociente es el p-valor. \\
+	
+	El contraste anterior es semiparamétrico, dado que con probabilidad $\frac{n_{cola}}{n}$, con $n_{cola}$ el número de observaciones en la cola dado el punto de corte $\hat{x}_{mín}$, se generan datos de acuerdo a la ley de potencias y el resto se seleccionan aleatoriamente del cuerpo de los datos originales. Para cada conjunto sintético se reajustan los valores de $\hat{x}_{mín}$ y $\hat{\alpha}$ con el fin de seguir el mismo procedimiento que se siguió con la red original\footnote{Si la red original proviniera de una ley de potencias, pero los datos en el cuerpo se alinearan con los de la cola, el estadístico KS sería más bajo de lo que debería. Por lo tanto, el p-valor estaría inflado debido a que el sobreajuste provoca un error menor que el que tendrían los datos sintéticos al medirse sobre la ley que los generó. Para que la comparación sea justa, los parámetros de la ley de potencias deben reajustarse.}. Para muestrear de una ley de potencias discreta, habría que aplicar el método de la transformada inversa sobre:
+	
+	\begin{equation}
+	P(x) = \sum_{x'=x}^{\infty}p(x') = 1 - r
+	\end{equation}
+	
+	donde $r \sim U(0,1)$. La fórmula anterior no es invertible, por lo que debe resolverse numéricamente. Una alternativa es utilizar una aproximación:
+	
+	\begin{equation}
+	x = \left\lfloor \left(x_{\min} - \frac{1}{2}\right)(1 - r)^{-1/(\alpha - 1)} + \frac{1}{2} \right\rfloor
+	\end{equation}
+	
+	\subsubsection{Comparación con distribuciones alternativas}
+	Incluso si la ley de potencias ajusta adecuadamente la distribución de grado, podría haber distribuciones que lo hicieran mejor. La forma de proceder es obtener la distribución alternativa que mejor se ajusta a los datos y comparar el cociente de log-verosimilitudes, $\mathcal{R}$. Si $\mathcal{R}$ es positivo, la ley de potencias se ajustará mejor a los datos, mientras que si es negativo será la distribución alternativa. Si es cercano a 0 significa que ha habido un empate. El signo de $\mathcal{R}$ podría deberse meramente al ruido estadístico, por lo que se debe calcular su valor esperado. Otro aspecto a tener en cuenta consiste en determinar qué significa que $\mathcal{R}$ esté cerca o lejos de 0. La respuesta viene del test de Voung. \\
+	
+	A continuación, se expone el formalismo matemático:
+	
+	\begin{equation}
+	\left.
+	\begin{aligned}
+	& L_1 = \prod_{i=1}^n p_1(x_i) \\
+	& L_2 = \prod_{i=1}^n p_2(x_i) \\
+	& R = \frac{L_1}{L_2} = \prod_{i=1}^n \frac{p_1(x_i)}{p_2(x_i)}
+	\end{aligned}
+	\right\} \implies \mathcal{R} = \sum_{i=1}^n \left[\ln p_1(x_i) - \ln p_2(x_i)\right] = \sum_{i=1}^{n}\left[\ell_i^{(1)} - \ell_i^{(2)}\right]
+	\end{equation}
+	
+	Dado que las muestras $x_i$ son independientes, las diferencias $\ell_i^{(1)} - \ell_i^{(2)}$ también lo son. Aplicando el teorema central del límite $\mathcal{R}$ se distribuye como una normal con varianza $n \sigma^2$, donde $\sigma^2$ es la varianza de un término que se puede aproximar por la varianza muestral:
+	
+	\begin{align}
+	& \sigma^2 = \frac{1}{n}\sum_{i=1}^n\left[\left(\ell_i^{(1)} - \ell_i^{(2)}\right) - \left(\hat{\ell}^(1) - \hat{\ell}^{(2)}\right)\right] \\
+	& \hat{\ell}^{(1)} = \frac{1}{n} \sum_{i=1}^n \ell_i^{(1)} \\
+	& \hat{\ell}^{(2)} = \frac{1}{n} \sum_{i=1}^n \ell_i^{(2)}
+	\end{align}
+	
+	Si las distribuciones son iguales, la diferencia de log-verosimilitudes es 0, que se toma como hipótesis nula. Esta se rechazará si la probabilidad de obtener la diferencia de log-verosimilitudes observada es menor que un determinado valor:
+	
+	\begin{equation}
+	p = \frac{1}{\sqrt{2\pi n \sigma^2}}\left[\int_{-\infty}^{-|R|}e^{-\frac{t^2}{2n\sigma^2}} dt + \int_{|R|}^{\infty}e^{-\frac{t^2}{2n\sigma^2}} dt\right]
+	\end{equation}
+		
+	\subsubsection{Resultados}
+	La tabla \ref{tab:res_dgrado} resume el ajuste de los parámetros de la ley de potencias y la simulación de Monte Carlo para evaluar la bondad del ajuste en la distribución de los grados de entrada y salida de la red. La hipótesis de distribución bajo una ley de potencias se verifica para el grado de entrada pero se rechaza para el de salida. Esto es coherente con la idea de que si alguien desarrolla un nuevo paquete, este dependa de los paquetes populares antes que de los desconocidos. Sin embargo, un paquete con muchas dependencias no va a depender de nuevos paquetes que se incorporen a la red (principalmente porque ya podía funcionar sin dichos paquetes). \\
+	
+	El valor de $\hat{x}_{mín}$ también puede ser indicador del cumplimiento de la ley de potencias. Para el grado de entrada se mantiene en el rango $[2, 4]$ mientras que para el de salida las fluctuaciones son mayores. Además, el estadistico KS es 6 más alto en la segunda distribución. Cabe decir que $\alpha < 2$ para la distribución de grado de entrada, lo que implica que todos los momentos divergen, incluidos la media y la varianza. Por lo tanto, no se puede hablar de grado medio.
+	
+	\begin{table}[H]
+		\centering
+		\begin{tabular}{lcc}
+			\toprule
+			\textbf{Métrica} & \textbf{Grado de Entrada} & \textbf{Grado de Salida} \\
+			\midrule
+			$x_{\min}$ óptimo & 3.0 & 11.0 \\
+			$x_{\min}$ bootstrap & $3.6 \pm 1.4$ & $21.4 \pm 8.9$ \\
+			$\alpha$ óptimo & $1.8999 \pm 0.0222$ & $2.5158 \pm 0.0479$ \\
+			KS óptima & 0.0139 & 0.0608 \\
+			$n_{\text{cola}}$ & 1646 (24.3\%) & 1001 (22.0\%) \\
+			p-valor (Test KS) & 0.532 & 0.000 \\
+			\midrule
+			Test de Vuong & No rechazada ($p > 0.1$) & Rechazada ($p \le 0.1$) \\
+			\bottomrule
+		\end{tabular}
+		\caption{Resumen del ajuste de ley de potencias para los grados de entrada y salida.}
+		\label{tab:res_dgrado}
+	\end{table}
+	
+	La figura \ref{fig:dgrado} muestra las distribuciones de masa de probabilidad empírica y teórica de los grados de entrada y salida de la red. Visualmente, el ajuste parece mejor para el grado de entrada. Hay que enfatizar que la distribución teórica se calcula solo para los datos de la cola, los cuales representa una fracción de la probabilidad total. Si se dibuja la ley de potencias calculada directamente saldrá por encima de la nube de puntos. Esto es porque la línea negra acumulará toda la probabilidad y tendrá más para repartir a cada punto. Para corregir el efecto, se debe multiplicar la probabilidad de grado teórica por la probabilidad de pertenecer a la cola ($\frac{n_{cola}}{n}$). También se ve cómo a partir de un determinado grado la probabilidad de la distribución empírica se estanca, mientras que la de la teórica sigue decreciendo. La razón es el número limitado de observaciones disponibles. Los paquetes con un elevado número de dependencias aparecen una vez en la red, sin importar cuál sea ese número. Por lo tanto, la probabilidad que acumulan es la misma. Si hubiera más muestras se seguiría la ley de potencias más allá de lo que se ve en la imagen. Finalmente, a la derecha se representa el valor del estadístico KS según el valor de corte $\hat{x}_{mín}$. 
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/ley_potencias_kmin}
+		\caption{Distribuciones de masa de probabilidad empíricas y teóricas y proceso de búsqueda de $x_{mín}$ óptimo para los grados de entrada y salida.}
+		\label{fig:dgrado}
+	\end{figure}
+	
+	La distribución según ley de potencias se compara con las presentadas en la tabla \ref{tab:dist_alternativas}. En la tabla \ref{tab:likelihood_ratio_test} se resumen los tests de razón de verosimilitud entre la ley de potencias y las distribuciones alternativas. Aunque para la distribución de grado de salida no tiene demasiado sentido porque se rechazó la hipótesis de que siguen una ley de potencias, la comparación sugiere que una Yule podría funcionar mejor. Para la distribución de entrada, la ley de potencias resulta favorable frente a la exponencial y la Poisson, mientras que es indistinguible de la Yule.
+	
+	\begin{table}[htpb]
+		\centering
+		\renewcommand{\arraystretch}{2.2} % Aumenta el espacio vertical para que no se aplasten las fracciones
+		\begin{tabular}{ll}
+			\toprule
+			\textbf{Distribución} & \textbf{Ecuaciones (PMF y log-verosimilitud)} \\
+			\midrule
+			% EXPONENCIAL
+			\multirow{2}{*}{\textbf{Exponencial}} 
+			& $p(x) = (1 - e^{-\lambda}) e^{\lambda x_{\min}} e^{-\lambda x}$ \\
+			& $\ell(x) = \ln(1 - e^{-\lambda}) + \lambda x_{\min} - \lambda x$ \\
+			\midrule
+			% YULE
+			\multirow{2}{*}{\textbf{Yule}} 
+			& $p(x) = (\alpha - 1) \frac{\Gamma(x_{\min} + \alpha - 1)}{\Gamma(x_{\min})} \frac{\Gamma(x)}{\Gamma(x + \alpha)}$ \\
+			& $\ell(x) = \ln(\alpha - 1) + \ln\Gamma(x_{\min} + \alpha - 1) - \ln\Gamma(x_{\min}) + \ln\Gamma(x) - \ln\Gamma(x + \alpha)$ \\
+			\midrule
+			% POISSON
+			\multirow{2}{*}{\textbf{Poisson}} 
+			& $p(x) = \left[ e^{\mu} - \sum_{k=0}^{x_{\min}-1} \frac{\mu^k}{k!} \right]^{-1} \frac{\mu^x}{x!}$ \\
+			& $\ell(x) = x \ln(\mu) - \ln\Gamma(x + 1) - \ln\left( e^{\mu} - \sum_{k=0}^{x_{\min}-1} \frac{\mu^k}{k!} \right)$ \\
+			\bottomrule
+		\end{tabular}
+		\caption{Funciones de masa de probabilidad y log-verosimilitud para distribuciones discretas alternativas a la ley de potencias: exponencial, Yule y Poisson.}
+		\label{tab:dist_alternativas}
+	\end{table}
+	
+	\begin{table}[htpb]
+		\centering
+		\begin{tabular}{lrcl}
+			\toprule
+			\textbf{Distribución Alternativa} & \textbf{LR ($\mathcal{R}$)} & \textbf{p-valor} & \textbf{Interpretación} \\
+			\midrule
+			\multicolumn{4}{c}{\textbf{Grado de Entrada (IN)} \quad ($k_{\min}=3$, $\alpha=1.900$, $p_{\text{KS}}=0.532$)} \\
+			\midrule
+			Exponencial & $8.432$ & $\mathbf{<0.001}$ & Ley de potencias favorable \\
+			Poisson     & $5.401$ & $\mathbf{<0.001}$ & Ley de potencias favorable \\
+			Yule        & $-1.598$ & $0.110$ & No distinguibles \\
+			\midrule
+			\multicolumn{4}{c}{\textbf{Grado de Salida (OUT)} \quad ($k_{\min}=11$, $\alpha=2.516$, $p_{\text{KS}}<0.001$)} \\
+			\midrule
+			Exponencial & $1.307$ & $0.191$ & No distinguibles \\
+			Poisson     & $3.824$ & $\mathbf{<0.001}$ & Ley de potencias favorable \\
+			Yule        & $-8.943$ & $\mathbf{<0.001}$ & \textbf{Alternativa favorable} \\
+			\bottomrule
+		\end{tabular}
+		\caption{Tests de razón de verosimilitud entre la ley de potencias empírica y las distribuciones alternativas para la región de la cola.}
+		\label{tab:likelihood_ratio_test}
+	\end{table}
+
 
 	\section{Análisis de centralidad}
 	Una vez realizado el análisis preliminar de la red se estudian las propiedades de centralidad de la misma para ver qué paquetes son los más importantes dentro de la red de dependencias de Python.

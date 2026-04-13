@@ -25,6 +25,9 @@ def graphStatistics(G):
     rad_in = G_giant.radius(mode="in")
     rad_out = G_giant.radius(mode="out")
     
+    AC = G.transitivity_avglocal_undirected(mode="zero")
+    OC = G.transitivity_undirected(mode="zero")
+    
     print(f"Número de nodos (paquetes): {nnodes}")
     print(f"Número de aristas (dependencias): {nedges}")
     print(f"Densidad: {density:.6f}")
@@ -37,9 +40,12 @@ def graphStatistics(G):
     print(f"Diámetro (C. gigante): {diameter}")
     print(f"Radio de entrada (C. gigante): {rad_in}")
     print(f"Radio de salida (C. gigante): {rad_out}")
+    
+    print(f"Coeficiente medio de clustering: {AC}")
+    print(f"Coeficiente global de clustering: {OC}")
     print("")
     
-    return G_giant, G_weak, G_strong, nnodes, nedges, density, degrees, avg_degree, diameter, rad_in, rad_out
+    return G_giant, G_weak, G_strong, nnodes, nedges, density, degrees, avg_degree, diameter, rad_in, rad_out, AC, OC
 
 def isolatedComponents(G):
     G_weak = G.connected_components(mode="weak")
@@ -464,7 +470,7 @@ def powerLawTest(G):
     
 file_path = "pypi_multiseed_10k.graphml"
 G = ig.Graph.Read_GraphML(file_path)
-G_giant, G_weak, G_strong, _, _, _, _, _, _, _, _ = graphStatistics(G)
+G_giant, G_weak, G_strong, _, _, _, _, _, _, _, _, _, _ = graphStatistics(G)
 islands = isolatedComponents(G)
 _ = findCycle(G)
 results = freescaleTests(G)
