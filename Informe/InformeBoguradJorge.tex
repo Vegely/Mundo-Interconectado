@@ -224,26 +224,36 @@
 		\label{fig:outcenter}
 	\end{figure}
 	
-	De entre todos los nodos, un total de \(6763 (99.97\%)\) pertenecen a la componente gigante. Los paquetes \texttt{ansible} y \texttt{ansible-core\textasciitilde{}} pertenecen a una isla desconectada del resto del grafo. Resulta extraño que \texttt{ansible}, un paquete de automatización ampliamente utilizado en la industria para configurar servidores y servicios por lotes, no tenga dependencias de otros paquetes. 
-	\cite{Clauset_2009}
+	De entre todos los nodos, un total de \(6763 (99.97\%)\) pertenecen a la componente gigante. Los paquetes \texttt{ansible} y \texttt{ansible-core\textasciitilde{}} pertenecen a una isla desconectada del resto del grafo. Resulta extraño que \texttt{ansible}, un paquete de automatización ampliamente utilizado en la industria para configurar servidores y servicios por lotes, no tenga dependencias de otros paquetes. Una posible explicación se encuentra en la forma de construir la red. Al fijar un límite máximo de 10000 nodos visitados\footnote{Nótese que la red tiene 6765 nodos, por lo que el contador considera todas las visitas independientemente de que sean al mismo nodo.}, podría ocurrir que \texttt{ansible-cores\textasciitilde{}} hubiera sido la última y no se analizaran sus dependencias. Las figuras \ref{fig:conectedcomponent} y \ref{fig:conectedin} representan la componente gigante.
 	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/ConectedComponent}
+		\caption{Representación de la componente fuertemente conexa en rojo de la red explotada.}
+		\label{fig:conectedcomponent}
+	\end{figure}
 	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/Conected_in}
+		\caption{Representación de la componente fuertemente conexa en rojo con zoom en la agrupación central.}
+		\label{fig:conectedin}
+	\end{figure}
 
-
+	La detección de islas se realiza analizando las componentes débilmente conexas, que no tienen en cuenta la dirección. Otro análisis interesante es el de las componentes fuertemente conexas. Se dice que la conexión entre dos nodos es fuerte si se puede ir y volver entre ellos. Este concepto está relacionado con la existencia de bucles. Si hay paquetes que se necesitan entre sí no se tiene un punto claro de inicio, por lo que la instalación no es limpia. Además, una actualización en uno de los paquetes podría provocar un cambio en el otro, y este cambio a su vez otro cambio en el paquete original. Este ciclo podría llegar a repetirse infinitamente. \\
 	
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\linewidth]{Imagenes/ConectedComponent}
-	\caption{Representación de la componente fuertemente conexa en rojo de la red explotada.}
-	\label{fig:conectedcomponent}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1\linewidth]{Imagenes/Conected_in}
-	\caption{Representación de la componente fuertemente conexa en rojo con zoom en la agrupación central.}
-	\label{fig:conectedin}
-\end{figure}
+	La cantidad de componentes fuertemente conexas debería ser igual al número de nodos (no hay paquetes que dependan mutuamente, por lo que no pueden formar una componente). En la red analizada hay 3727, lo que sugiere la existencia de ciclos. Solamente 2 componentes tienen más de un nodo. Es decir, hay 3725 paquetes sin dependencias cíclicas y los 3040 restantes se reparten entre 2 bucles. La longitud media de los bucles es de 1520 paquetes. Afinando el análisis, uno de los bucles contiene 2 nodos y el otro por 3038. El primero está compuesto por \texttt{ryd} y \texttt{ruamel.yaml}, dos paquetes de DevOps empleados para realizar lecturas y escrituras sobre archivos YAML. La composición del segundo es mucho más amplia como para analizar paquete a paquete. En la figura \ref{fig:pypi_ciclos_categorias} se han clasificado las librerías del bucle según la categoría a la que pertenecen utilizando un modelo de lenguaje. Cabe decir que dentro de la propia componente fuertemente conexa podría haber bucles internos, aunque este análisis no se ha realizado. Observando alguno de los paquetes en la componente fuertemente conexa, algunos de ellos resultan conocidos (por ejemplo, \texttt{fastapi}, \texttt{django} o \texttt{requests}) e incluso por experiencia al instalarlos no han arrastrado al resto de elementos en el bucle. La razón de este comportamiento es de nuevo atribuible a la construcción de la red, que no discrimina entre dependencias de producción o desarrollo. En producción, las instalaciones siguen una jerarquía de dependencias donde solamente se descargan los paquetes necesarios para el funcionamiento. En desarrollo, los autores de los paquetes base suelen declarar dependencias hacia paquetes de más alto nivel para comprobar que su código se integra correctamente con ellos. 
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/Conected_in}
+		\caption{Categorización de los paquetes de PyPI en la componente fuertemente conexa.}
+		\label{fig:pypi_ciclos_categorias}
+	\end{figure}
+	
+	En la componente gigante extraída anteriormente se analizan algunas métricas adicionales. El diámetro es 25, lo que implica que en el peor de los casos esa será los profundidad de las dependencias de un paquete\footnote{No se debe asociar el diámetro al número de dependencias, sino a la profundidad de las mismas. Por ejemplo, un paquete podría depender de varios paquetes que no dependen de nadie más, en cuyo caso la profundidad sería 1 pero el número de dependencias sería mayor que 1.}. El radio se distingue según sea de entrada o de salida. El valor del primero es 6 y se relaciona con la accesibilidad de los paquetes básicos. Cualquier paquete dependiente del paquete menos excéntrico, lo alcanzará en un máximo de 6 pasos. El valor del segundo es 13 y se relaciona con la facilidad de instalar paquetes. En el mejor de los casos (paquete mejor posicionado), se requiere una instalación de profundidad 13.
+	
+\cite{Clauset_2009}
 
 	\section{Análisis de centralidad}
 	Una vez realizado el análisis preliminar de la red se estudian las propiedades de centralidad de la misma para ver qué paquetes son los más importantes dentro de la red de dependencias de Python.
