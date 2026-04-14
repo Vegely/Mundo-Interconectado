@@ -9,24 +9,24 @@
 \contentsline {chapter}{\numberline {2}Análisis de la red}{3}{chapter.2}%
 \contentsline {section}{\numberline {2.1}Descripción de la red}{3}{section.2.1}%
 \contentsline {subsection}{\numberline {2.1.1}Distribución de grado}{9}{subsection.2.1.1}%
-\contentsline {subsubsection}{Estimación de parámetros}{9}{section*.2}%
-\contentsline {subsubsection}{Tests de bondad de ajuste}{10}{section*.3}%
+\contentsline {subsubsection}{Estimación de parámetros}{10}{section*.2}%
+\contentsline {subsubsection}{Tests de bondad de ajuste}{11}{section*.3}%
 \contentsline {subsubsection}{Comparación con distribuciones alternativas}{11}{section*.4}%
 \contentsline {subsubsection}{Resultados}{12}{section*.5}%
-\contentsline {section}{\numberline {2.2}Análisis de centralidad}{14}{section.2.2}%
-\contentsline {subsection}{\numberline {2.2.1}PageRank}{14}{subsection.2.2.1}%
+\contentsline {section}{\numberline {2.2}Análisis de centralidad}{15}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}PageRank}{16}{subsection.2.2.1}%
 \contentsline {subsection}{\numberline {2.2.2}Centralidad de Intermediación}{17}{subsection.2.2.2}%
 \contentsline {subsection}{\numberline {2.2.3}Centralidad de Cercania}{18}{subsection.2.2.3}%
 \contentsline {subsection}{\numberline {2.2.4}Distribuciones de Centralidad}{19}{subsection.2.2.4}%
-\contentsline {section}{\numberline {2.3}Análisis de comunidades}{19}{section.2.3}%
-\contentsline {chapter}{\numberline {3}Herramienta de visualización de la red}{21}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Arquitectura general}{21}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Cálculos preliminares}{21}{section.3.2}%
-\contentsline {section}{\numberline {3.3}Motor de físicas}{22}{section.3.3}%
-\contentsline {section}{\numberline {3.4}Métricas y modos de color}{24}{section.3.4}%
-\contentsline {section}{\numberline {3.5}Modo de visualización de ciclos}{25}{section.3.5}%
-\contentsline {section}{\numberline {3.6}Inversión de colores}{25}{section.3.6}%
-\contentsline {section}{\numberline {3.7}Interacción}{25}{section.3.7}%
-\contentsline {subsection}{\numberline {3.7.1}Controles de teclado}{25}{subsection.3.7.1}%
-\contentsline {subsection}{\numberline {3.7.2}Inspección de nodos}{26}{subsection.3.7.2}%
-\contentsline {chapter}{\numberline {4}Conclusiones}{27}{chapter.4}%
+\contentsline {section}{\numberline {2.3}Análisis de comunidades}{20}{section.2.3}%
+\contentsline {chapter}{\numberline {3}Herramienta de visualización de la red}{22}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Arquitectura general}{22}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Cálculos preliminares}{22}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Motor de físicas}{24}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Métricas y modos de color}{25}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Modo de visualización de ciclos}{26}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Inversión de colores}{26}{section.3.6}%
+\contentsline {section}{\numberline {3.7}Interacción}{26}{section.3.7}%
+\contentsline {subsection}{\numberline {3.7.1}Controles de teclado}{26}{subsection.3.7.1}%
+\contentsline {subsection}{\numberline {3.7.2}Inspección de nodos}{27}{subsection.3.7.2}%
+\contentsline {chapter}{\numberline {4}Conclusiones}{28}{chapter.4}%

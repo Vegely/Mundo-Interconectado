@@ -16,6 +16,8 @@
 \usepackage{tikz-3dplot}
 \usetikzlibrary{3d, calc}
 \usepackage{multirow}
+\usepackage{parskip}
+
 % ── Bibliografía IEEE con BibTeX ──────────────────────────────────────────────
 % Requiere el paquete IEEEtran.bst (incluido en la mayoría de distribuciones TeX)
 \bibliographystyle{IEEEtran}
@@ -251,7 +253,7 @@
 	
 	\begin{figure}[H]
 		\centering
-		\includegraphics[width=1\linewidth]{Imagenes/Conected_in}
+		\includegraphics[width=0.8\linewidth]{Imagenes/pypi_ciclos_categorias.png}
 		\caption{Categorización de los paquetes de PyPI en la componente fuertemente conexa.}
 		\label{fig:pypi_ciclos_categorias}
 	\end{figure}
@@ -376,7 +378,7 @@
 	
 	La distribución según ley de potencias se compara con las presentadas en la tabla \ref{tab:dist_alternativas}. En la tabla \ref{tab:likelihood_ratio_test} se resumen los tests de razón de verosimilitud entre la ley de potencias y las distribuciones alternativas. Aunque para la distribución de grado de salida no tiene demasiado sentido porque se rechazó la hipótesis de que siguen una ley de potencias, la comparación sugiere que una Yule podría funcionar mejor. Para la distribución de entrada, la ley de potencias resulta favorable frente a la exponencial y la Poisson, mientras que es indistinguible de la Yule.
 	
-	\begin{table}[htpb]
+	\begin{table}[H]
 		\centering
 		\renewcommand{\arraystretch}{2.2} % Aumenta el espacio vertical para que no se aplasten las fracciones
 		\begin{tabular}{ll}
@@ -403,7 +405,7 @@
 		\label{tab:dist_alternativas}
 	\end{table}
 	
-	\begin{table}[htpb]
+	\begin{table}[H]
 		\centering
 		\begin{tabular}{lrcl}
 			\toprule
@@ -427,55 +429,60 @@
 	\end{table}
 
 	\section{Análisis de centralidad}
-	Una vez realizado el análisis preliminar de la red se estudian las propiedades de centralidad de la misma para ver qué paquetes son los más importantes dentro de la red de dependencias de Python. Para realizar este estudio se estudian las tres magnitudes estudiadas en clase: PageRank, Centralidad de Intermediación y Centralidad de Cercania.
+	Una vez realizado el análisis preliminar de la red se estudian las propiedades de centralidad de la misma para ver qué paquetes son los más importantes dentro de la red de dependencias de Python. Para realizar este estudio se estudian las tres magnitudes estudiadas en clase: PageRank, Centralidad de Intermediación y Centralidad de Cercania mediante el script \texttt{centrality.py}. Estos nodos son 
 	
 	
 
 
 	\subsection{PageRank}
-	Como se trabaja con un grafo dirigido, esta medida de centralidad es de aplicación directa al análisis de trabajo. Como el PageRank se puede entender como una medida de cual es la probabilidad de acabar en un paquete al realizar un camino aleatorio markoviano sobre el grafo con saltos aleatorios con una probabilidad $\theta=0.85$. Por tanto, puede entenderse que 
+	Como se trabaja con un grafo dirigido, esta medida de centralidad es de aplicación directa al análisis de trabajo. En este contexto, el PageRank representa la probabilidad de alcanzar un paquete dado mediante un paseo aleatorio de Markov a través del grafo, utilizando un factor de salto de $\theta=0.85$. Por tanto, puede entenderse que aquellos paquetes que acaben con un valor más alto de esta métrica serán los más relevantes de la red de dependencias de Python.
+	\newline
+	
+	Visualmente, tal y como se puede ver en las figuras \ref{fig:pagerankfull} y \ref{fig:pagerankin} se ven varios nodos que destacan en importancia
 	
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=1\linewidth]{Imagenes/PageRank_full}
-		\caption{}
+		\caption{Representación del PageRank en la red completa de dependencias de Python donde en amarillo están los paquetes con mayor valor de esta métrica y en azul aquellos con menor valor.}
 		\label{fig:pagerankfull}
 	\end{figure}
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=1\linewidth]{Imagenes/PageRank_In}
-		\caption{}
+		\caption{Representación del PageRank en la red con zoom de dependencias de Python donde en amarillo están los paquetes con mayor valor de esta métrica y en azul aquellos con menor valor.}
 		\label{fig:pagerankin}
 	\end{figure}
 	\subsection{Centralidad de Intermediación}
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=1\linewidth]{Imagenes/BTWEENESSOUT}
-		\caption{}
+		\caption{Representación de la Centralidad de Intermediación en la red completa de dependencias de Python donde en blanco y amarillo están los paquetes con mayor valor de esta métrica y en negro y rojo aquellos con menor valor.}
 		\label{fig:btweenessout}
 	\end{figure}
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=1\linewidth]{Imagenes/BTWEENESIN}
-		\caption{}
+		\caption{Representación de la Centralidad de Intermediación en la red con zoom de dependencias de Python donde en blanco y amarillo están los paquetes con mayor valor de esta métrica y en negro y rojo aquellos con menor valor.}
 		\label{fig:btweenesin}
 	\end{figure}
 	
 	\subsection{Centralidad de Cercania}
-	\begin{figure}[H]
-		\centering
-		\includegraphics[width=1\linewidth]{Imagenes/Closeness_In}
-		\caption{}
-		\label{fig:closenessin}
-	\end{figure}
+
 	
 	
 	
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=1\linewidth]{Imagenes/Closeness_Out}
-		\caption{}
+		\caption{Representación de la Centralidad de Cercanía en la red completa de dependencias de Python donde en blanco y cian están los paquetes con mayor valor de esta métrica y en azul oscuro aquellos con menor valor.}
 		\label{fig:closenessout}
+	\end{figure}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=1\linewidth]{Imagenes/Closeness_In}
+		\caption{Representación de la Centralidad de Cercanía en la red con zoom de dependencias de Python donde en blanco y cian están los paquetes con mayor valor de esta métrica y en azul oscuro aquellos con menor valor.}
+		\label{fig:closenessin}
 	\end{figure}
 	\subsection{Distribuciones de Centralidad}
 	\begin{figure}[H]
@@ -502,12 +509,14 @@
 
 	\section{Análisis de comunidades}
  \textbf{Comunidades (Louvain)} \cite{Blondel_2008}: Cada nodo se colorea según la comunidad a la que pertenece, detectada mediante el algoritmo de Louvain aplicado sobre el grafo no dirigido. A cada comunidad se le asigna un tono único extraído de la misma paleta HSV uniforme utilizada en el modo de ciclos, facilitando la comparación visual entre ambas estructuras.
+ CAMBIAR IMAGEN
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=1\linewidth]{Imagenes/Comunidades}
 	\caption{}
 	\label{fig:comunidades}
 \end{figure}
+
 
 	\chapter{Herramienta de visualización de la red}
 	
