@@ -1,111 +1,88 @@
-"""
-Community detection for PyPI dependency graphs.
-- Louvain with a properly seeded igraph RNG → deterministic results every run
-- Communities labeled by index (no LLM)
-- Donut chart + txt report
-"""
-
+import colorsys
 import igraph as ig
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import random
 
+ig.set_random_number_generator(random.Random(42))
 
-def detect_and_export_communities(
-    g,
-    txt_output: str = "communities_list.txt",
-    plot_output: str = "communities_donut.png",
-):
-    # ── 1. Louvain with deterministic igraph RNG ──────────────────────────
-    print("· Running Louvain (deterministic seed)…")
-    ig.set_random_number_generator(random.Random(42))
+
+def generate_cycle_palette(n, saturation=0.75, value=0.92):
+    palette = []
+    for i in range(n):
+        h = i / n
+        r, g, b = colorsys.hsv_to_rgb(h, saturation, value)
+        palette.append((
+            int(round(r * 255)),
+            int(round(g * 255)),
+            int(round(b * 255)),
+        ))
+    return palette
+
+
+def detect_communities(g):
     ug = g.as_undirected(combine_edges="first")
     comm = ug.community_multilevel()
     membership = comm.membership
-    n_communities = max(membership) + 1
-    print(f"  Found {n_communities} communities.")
 
-    # ── 2. Group packages by community ────────────────────────────────────
     attr = (
         "id"   if "id"   in g.vs.attributes() else
         "name" if "name" in g.vs.attributes() else None
     )
+
     communities: dict[int, list[str]] = {}
     for i, c_id in enumerate(membership):
         communities.setdefault(c_id, [])
         label = g.vs[i][attr] if attr else f"pkg_{i}"
         communities[c_id].append(label)
 
-    sorted_communities = sorted(
-        communities.items(), key=lambda x: len(x[1]), reverse=True
-    )
-    total_pkgs = g.vcount()
+    # Keep igraph's original 0-based ordering so IDs match the visualizer
+    return sorted(communities.items())
 
-    # ── 3. Build names (just numbered) ────────────────────────────────────
-    community_names: dict[int, str] = {}
-    for rank, (c_id, pkgs) in enumerate(sorted_communities, start=1):
-        community_names[c_id] = f"Community {rank}"
-        print(f"  [{len(pkgs):>5} pkgs]  {community_names[c_id]}")
 
-    # ── 4. Export .txt ────────────────────────────────────────────────────
-    print(f"\n· Writing {txt_output}…")
+def export_txt(communities, txt_output="communities_list.txt"):
     with open(txt_output, "w", encoding="utf-8") as f:
-        f.write("COMMUNITY REPORT (LOUVAIN)\n")
-        f.write("==========================\n\n")
-        for rank, (c_id, pkgs) in enumerate(sorted_communities, start=1):
-            f.write(f"Community {rank} | {len(pkgs)} pkgs\n")
+        for c_id, pkgs in communities:
+            f.write(f"Community {c_id} | {len(pkgs)} pkgs\n")
             f.write("-" * 60 + "\n")
             f.write(", ".join(pkgs) + "\n\n")
+    print(f"  Package list written → {txt_output}")
 
-    # ── 5. Donut chart ────────────────────────────────────────────────────
-    print(f"· Rendering {plot_output}…")
-    max_slices = 9
-    sizes  = [len(pkgs) for _, pkgs in sorted_communities]
-    labels = [community_names[c_id] for c_id, _ in sorted_communities]
 
-    if len(sizes) > max_slices:
-        top_sizes  = sizes[:max_slices - 1]
-        top_labels = labels[:max_slices - 1]
-        others_size = sum(sizes[max_slices - 1:])
-        sizes  = [others_size] + top_sizes
-        labels = ["Other communities"] + top_labels
+def generate_latex_table(communities, output_tex="communities_table.tex"):
+    n = len(communities)
+    palette = generate_cycle_palette(n)
 
-    cmap   = matplotlib.colormaps["tab10"]
-    colors = ["#9e9e9e"] + [cmap(i) for i in range(len(sizes) - 1)]
+    rows = []
+    for idx, (c_id, pkgs) in enumerate(communities):
+        r, g, b = palette[idx]
+        row = (
+            rf"        \cellcolor[RGB]{{{r},{g},{b}}}{c_id} & {len(pkgs)} &  \\ \hline"
+        )
+        rows.append(row)
 
-    fig, ax = plt.subplots(figsize=(15, 7))
-    wedges, _ = ax.pie(
-        sizes, colors=colors, startangle=140,
-        wedgeprops={"edgecolor": "white", "linewidth": 1.5},
-    )
+    rows_str = "\n".join(rows)
 
-    ax.add_artist(plt.Circle((0, 0), 0.40, fc="white"))
-    ax.text(0,  0.06, f"{total_pkgs:,}", ha="center", va="center",
-            fontsize=15, fontweight="bold", color="#111111")
-    ax.text(0, -0.10, "packages",        ha="center", va="center",
-            fontsize=10, color="#555555")
+    latex = rf"""\begin{{longtable}}{{|c|c|p{{10cm}}|}}
+    \caption{{Descripción de las comunidades principales detectadas en la red de dependencias de Python.}} \label{{tab:communities_desc}} \\
 
-    legend_labels = [
-        f"{lbl}   —   {sz:,}  ({sz/total_pkgs*100:.1f}%)"
-        for lbl, sz in zip(labels, sizes)
-    ]
-    ax.legend(
-        wedges, legend_labels,
-        loc="center left", bbox_to_anchor=(0.95, 0.5),
-        frameon=False, handlelength=1.1, handleheight=1.1, fontsize=9,
-    )
+    \hline
+    \textbf{{ID}} & \textbf{{Nodos}} & \textbf{{Descripción}} \\ \hline
+    \endhead
 
-    plt.title(
-        "Giant Strongly Connected Component — Communities\n"
-        "Distribution by Community (Louvain, multiseed 10k graph)",
-        fontsize=12, fontweight="bold", pad=20,
-    )
-    plt.axis("equal")
-    plt.tight_layout()
-    plt.savefig(plot_output, dpi=300, bbox_inches="tight")
-    plt.close()
-    print("· Done ✓")
+    \hline
+    \multicolumn{{3}}{{|r|}}{{{{Continúa en la siguiente página...}}}} \\ \hline
+    \endfoot
+
+    \hline
+    \endlastfoot
+
+{rows_str}
+\end{{longtable}}
+"""
+
+    with open(output_tex, "w", encoding="utf-8") as f:
+        f.write(latex)
+
+    print(f"  LaTeX table written → {output_tex}")
 
 
 if __name__ == "__main__":
@@ -113,8 +90,11 @@ if __name__ == "__main__":
     g = ig.Graph.Read_GraphML("pypi_multiseed_10k.graphml")
     print(f"  {g.vcount():,} nodes, {g.ecount():,} edges")
 
-    detect_and_export_communities(
-        g,
-        txt_output="communities.txt",
-        plot_output="communities_donut.png",
-    )
+    print("· Running Louvain…")
+    communities = detect_communities(g)
+    print(f"  Found {len(communities)} communities.")
+
+    export_txt(communities, "communities_list.txt")
+    generate_latex_table(communities, "communities_table.tex")
+
+    print("Done.")

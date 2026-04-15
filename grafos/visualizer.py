@@ -7,8 +7,10 @@ import numpy as np
 from PIL import Image
 from vispy import app, scene
 from vispy.color import get_colormap
+import random
 
 app.use_app('glfw')
+ig.set_random_number_generator(random.Random(42))
 
 #Physics Parameters 
 PHYSICS = {

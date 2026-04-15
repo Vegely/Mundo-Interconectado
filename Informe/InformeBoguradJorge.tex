@@ -16,7 +16,7 @@
 \usepackage{tikz-3dplot}
 \usetikzlibrary{3d, calc}
 \usepackage{multirow}
-\usepackage{parskip}
+%\usepackage{parskip}
 
 % ── Bibliografía IEEE con BibTeX ──────────────────────────────────────────────
 % Requiere el paquete IEEEtran.bst (incluido en la mayoría de distribuciones TeX)
@@ -32,6 +32,7 @@
 	bottom=3cm,
 }
 
+
 % --- Configuración de encabezados y pies de página ---
 \usepackage{fancyhdr}
 \pagestyle{fancy}
@@ -42,8 +43,8 @@
 
 % --- Configuración de listings para código Python ---
 \usepackage{listings}
-\usepackage{xcolor}
-
+\usepackage{longtable}
+\usepackage[table]{xcolor} % El parámetro table es necesario para colorear celdas
 % Definición de colores personalizados para el código
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
@@ -438,7 +439,9 @@
 	Como se trabaja con un grafo dirigido, esta medida de centralidad es de aplicación directa al análisis de trabajo. En este contexto, el PageRank representa la probabilidad de alcanzar un paquete dado mediante un paseo aleatorio de Markov a través del grafo, utilizando un factor de salto de $\theta=0.85$. Por tanto, puede entenderse que aquellos paquetes que acaben con un valor más alto de esta métrica serán los más relevantes de la red de dependencias de Python.
 	\newline
 	
-	Visualmente, tal y como se puede ver en las figuras \ref{fig:pagerankfull} y \ref{fig:pagerankin} se ven varios nodos que destacan en importancia
+	Visualmente, tal y como se puede ver en las figuras \ref{fig:pagerankfull} y \ref{fig:pagerankin} se ven varios nodos que destacan en importancia. Además, la ejecución del script \texttt{centrality.py} confirma que hay dos nodos, \texttt{typing-extensions} y \texttt{pytest}, que presentan una ponderación logarítmica muy superior al resto. Estos son seguidos por paquetes donde ya la distancia en PageRank entre ellos ya no es tan grande.
+	
+	
 	
 	\begin{figure}[H]
 		\centering
@@ -452,7 +455,23 @@
 		\caption{Representación del PageRank en la red con zoom de dependencias de Python donde en amarillo están los paquetes con mayor valor de esta métrica y en azul aquellos con menor valor.}
 		\label{fig:pagerankin}
 	\end{figure}
+	
+	Aun así, al analizar estos paquetes que han salido con los valores más elevados de este métrica de centralidad se confirma que esta es adecuada para el análisis de importancia pues los paquetes que salen arriba del todo son fundamentales. \texttt{typing-extensions} es una librería utilizada para forzar la definición explícita de los tipos de datos en Python. De esta manera, se soluciona el problema fundamental de los errores de tipo en el intérprete, lo que da sentido a que sea uno de los paquetes más relevantes del ecosistema. \texttt{pytest} el segundo de la lista es un paquete también esencial para el desarrollo porque es una herramienta necesaria en proyectos grandes para poder realizar los test del código. \texttt{numpy} es el tercero de la lista y es el paquete para realizar álgebra de manera eficiente en Python por lo que es lógico que tenga mucha relevancia porque la mayoría de paquetes necesitan realizar operaciones eficientes. Por tanto, el PageRank es una buena medida para evaluar como de útil es un paquete dentro del ecosistema de desarrollo.
+	\newline
+	
+	Asimismo, es necesario recalcar el problema de la duplicidad de nodos introducido por cómo se ha construido el grafo. Tal y como se evidenció previamente con el paquete \texttt{ansible}, las inconsistencias en la nomenclatura utilizada por los desarrolladores provocan que una librería pueda no ser encontrada o crear entradas duplicadas. Esto implica que los paquetes más relevantes del ecosistema concentran, en realidad, un \textit{PageRank} aún mayor del que reflejan sus métricas individuales actuales. Ejemplos claros de esta división se observan en las entradas separadas para \texttt{typing-extensions} y \texttt{typing\_extensions}, o \texttt{sphinx} y \texttt{Sphinx}. Para resolver esta problemática, en PyPi probablemente se utilicen herramientas que conviertan todos los nombres a texto plano y de esta forma se eliminen estas inconsistencias.
+	\newline
+	
+	Por otro lado, cabe destacar que, excluyendo a \texttt{numpy} y \texttt{requests} (que son paquetes de uso directo para aplicaciones muy específicas), la mayor parte del top 10 está conformada por paquetes necesarias para mantener proyectos complejos. En consecuencia, se evidencia que los paquetes más importantes de la red representan la infraestructura clave que permite al resto de herramientas tener un ciclo de desarrollo más ágil y escalable.
+	\newline
+	
+	Finalmente, resulta llamativo encontrar en la quinta posición a \texttt{pyobjc-core}, una librería exclusiva para la integración con sistemas operativos macOS. Dado que el ecosistema de desarrollo en Python está fuertemente dominado por entornos Linux y Windows, la cuota de mercado de macOS no justificaría por sí sola una centralidad tan elevada. Sin embargo, esta anomalía ilustra perfectamente la naturaleza de las dependencias condicionales en proyectos multiplataforma. Grandes paquetes de automatización o interfaces gráficas incluyen a \texttt{pyobjc-core} como dependencia oculta, instalándose automáticamente solo cuando el código se ejecuta en un entorno de Apple. Así, la librería acumula un \textit{PageRank} masivo de forma pasiva.
+	
+	Por último, es relevante destacar como en el top 5 aparece el paquete \texttt{pyobjc-core} que es un paquete exclusivo para la integración con sistemas operativos macOS. Dado que la mayoría del desarrollo en Python está fuertemente dominado por entornos Linux y Windows, la cuota de mercado de macOS no justificaría por sí sola una centralidad tan elevada. No obstante, esta anomalía evidencia la naturaleza de las dependencias condicionales en proyectos multiplataforma que descargan este paquete solo cuando el código se ejecuta en entornos de Apple.
+	
 	\subsection{Centralidad de Intermediación}
+	
+	La centralidad de intermediación mide la frecuencia con la que un nodo esta en el camino más corto entre otros dos nodos del grafo. En el contexto del ecosistema Python, esta métrica indica que paquetes conectan paquetes de diferentes ecosistemas o que funcionan de interfaces estandarizadoras de los datos. Visualmente en las figuras \ref{fig:btweenessout} y \ref{fig:btweenesin}, se puede ver que a diferencia del PageRank existe una mayor homogeneidad en cuanto a esta métrica de centralidad, es decir, ya no existen tantos paquetes críticos. 
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=1\linewidth]{Imagenes/BTWEENESSOUT}
@@ -466,9 +485,14 @@
 		\label{fig:btweenesin}
 	\end{figure}
 	
+	Al examinar las primeras posiciones de esta métrica, se comprueba que refleja fielmente la función de estos paquetes como puentes del ecosistema. \texttt{pandas} ocupa el primer lugar al ser el estándar de facto para la manipulación de datos tabulares. Por tanto, su integración es un requisito para casi cualquier librería orientada al análisis de datos. A continuación, la segunda posición de \texttt{pyiceberg} subraya el inmenso peso que tiene el procesamiento de grandes volúmenes de información en Python en formato tabular. Dada su alta centralidad de intermediación, la adopción masiva de estas herramientas sugiere que la manipulación de datos tabulares es tan esencial dentro del ecosistema Python que podría motivar su futura integración como un tipo nativo en el estándar de Python.
+	\newline
+	
+	A continuación, destaca la posición de \texttt{ipython}, que actúa como nexo fundamental entre los entornos de programación interactiva como Jupyter y las herramientas de depuración del lenguaje. Esta librería funciona como un puente estructural, conectando a la vasta comunidad centrada en el análisis exploratorio con el núcleo de desarrollo tradicional de Python. Por otro lado, la presencia de \texttt{hypothesis} y \texttt{pytest} cerrando el \textit{top} 5 revela la transversalidad de las pruebas de software. Independientemente del subdominio al que pertenezca un paquete, el uso de estos frameworks es un estándar para garantizar la calidad y compatibilidad del código, convirtiéndolos en puntos que unen todas las ramas de la red.
+
 	\subsection{Centralidad de Cercania}
 
-	
+	La centralidad de cercanía evalúa la distancia media desde un nodo hacia todos los demás nodos de la red. Desde una perspectiva de arquitectura, esto implica que cualquier cambio en estos nodos centrales se propagará rápidamente a lo largo de toda la red.	Visualmente, tal y como se observa en las figuras \ref{fig:closenessout} y \ref{fig:closenessin}, la red presenta una apariencia densa y comprimida donde resulta complejo distinguir variaciones significativas entre los nodos Esta homogeneidad visual se debe a la componente no conexa del paquete \texttt{ansible} que provoca una distorsión que aplasta los valores de centralidad de la inmensa mayoría de la red principal en torno al $0.4$. Para mitigar este efecto y poder extraer conclusiones analíticas válidas este paquete se ha sido excluido del ranking numérico analizado a continuación.
 	
 	
 	\begin{figure}[H]
@@ -484,32 +508,51 @@
 		\caption{Representación de la Centralidad de Cercanía en la red con zoom de dependencias de Python donde en blanco y cian están los paquetes con mayor valor de esta métrica y en azul oscuro aquellos con menor valor.}
 		\label{fig:closenessin}
 	\end{figure}
-	\subsection{Distribuciones de Centralidad}
-	\begin{figure}[H]
-		\centering
-		\includegraphics[width=1\linewidth]{Imagenes/centrality_distributions_linear}
-		\caption{}
-		\label{fig:centralitydistributionslinear}
-	\end{figure}
-	\begin{figure}[H]
-		\centering
-		\includegraphics[width=1\linewidth]{Imagenes/centrality_distributions_loglog}
-		\caption{}
-		\label{fig:centralitydistributionsloglog}
-	\end{figure}
+
 	
-	\begin{enumerate}
-		\item \textbf{PageRank}: Importancia global de cada nodo en función de la calidad de sus referencias entrantes. Paleta \textit{plasma}.
-		\item \textbf{Centralidad de intermediación} (\textit{betweenness}): Frecuencia con la que un nodo aparece en los caminos más cortos entre pares de nodos. Paleta degradada de negro a blanco pasando por rojo y amarillo (\textit{fire}).
-		\item \textbf{Centralidad de cercanía} (\textit{closeness}): Inverso de la distancia media al resto de nodos alcanzables. Paleta degradada de azul oscuro a cian (\textit{ice}).
-	\end{enumerate}
-	
+Al examinar los datos depurados y normalizados, no se observan grandes diferencias entre los paquetes y parecen estar distribuidos de manera muy uniforme. No obstante, las conclusiones de centralidad que se obtienen son semejantes a las obtenidas mediante las métricas de PageRank y de centralidad de intermediación.
+
+\subsection{Distribuciones de Centralidad}
+
+Para comprender la topología de la red de dependencias, es fundamental analizar la distribución de sus métricas de centralidad. Al observar las figuras \ref{fig:centralitydistributionslinear} y \ref{fig:centralitydistributionsloglog}, se identifican tres patrones geométricos distintos que responden a leyes matemáticas específicas.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/centrality_distributions_linear}
+	\caption{Distribución de frecuencias de las métricas de centralidad en escala lineal. Se observa una asimetría extrema en la mayoría de variables.}
+	\label{fig:centralitydistributionslinear}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\linewidth]{Imagenes/centrality_distributions_loglog}
+	\caption{Distribución de frecuencias de las métricas de centralidad en escala Log-Log, revelando las leyes de potencias y decaimientos estructurales.}
+	\label{fig:centralitydistributionsloglog}
+\end{figure}
+
+\subsubsection{PageRank}
+En la escala Log-Log, esta métrica se distribuye siguiendo una línea recta descendente. Este comportamiento es característico de las redes libres de escala, donde la función sigue la relación:
+\begin{equation}
+	P(PR) \sim PR^{-\gamma} \implies \log(P(PR)) = -\gamma \log(PR) + C
+\end{equation}
+
+Este comportamiento muestra que los paquetes más importantes siguen creciendo y siendo cada vez más importantes, es decir, un escenario de rich get richer. Dentro de un ecosistema de paquetes esto es lógico puesto que existen dependencias que por la función esencial que desempeñan acaban siendo los más importantes.
 
 
-
+\subsubsection{Centralidad de Intermediación}
+A diferencia de la anterior, la centralidad de intermediación no forma una recta, sino una curva que cae de forma cuadrática en la escala logarítmica. Esta relación tiene una ecuación de tipo:
+\begin{equation}
+	\log(P(CI)) \approx -K (\log CI)^2 + C
+\end{equation}
+Esta curvatura indica que ser un puente es un rol mucho más exclusivo que ser popular.
+\subsubsection{Centralidad de Cercanía}
+La centralidad de cercanía rompe con las asimetrías anteriores y presenta una distribución similar a una distribución normal:
+\begin{equation}
+	P(CC) = \frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{1}{2}\left(\frac{CC-\mu}{\sigma}\right)^2}
+\end{equation}
+Este fenómeno se debe a la existencia del efecto Pequeño Mundo. 
 	\section{Análisis de comunidades}
- \textbf{Comunidades (Louvain)} \cite{Blondel_2008}: Cada nodo se colorea según la comunidad a la que pertenece, detectada mediante el algoritmo de Louvain aplicado sobre el grafo no dirigido. A cada comunidad se le asigna un tono único extraído de la misma paleta HSV uniforme utilizada en el modo de ciclos, facilitando la comparación visual entre ambas estructuras.
- CAMBIAR IMAGEN
+Para analizar las comunidades se utiliza el algoritmo de Louvain aplicado sobre el grado no dirigido. El análisis de esta sección queda reflejado mediante la figuras \ref{fig:comunidades}, \ref{fig:communitiesdonut} y la tabla \ref{tab:communities_desc} generada mediante el script \texttt{comunities.py}. ITS NOT WORKING PROPERLY CHECK RNG; REDO TABLE AND PNG
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=1\linewidth]{Imagenes/Comunidades}
@@ -517,6 +560,56 @@
 	\label{fig:comunidades}
 \end{figure}
 
+
+\renewcommand{\arraystretch}{1.5}
+\begin{longtable}{|c|c|p{10cm}|}
+	\caption{Descripción de las comunidades principales detectadas en la red de dependencias de Python.} \label{tab:communities_desc} \\
+	
+	\hline
+	\textbf{ID} & \textbf{Nodos} & \textbf{Descripción} \\ \hline
+	\endhead
+	
+	\hline
+	\multicolumn{3}{|r|}{{Continúa en la siguiente página...}} \\ \hline
+	\endfoot
+	
+	\hline
+	\endlastfoot
+	
+	\cellcolor[RGB]{235,59,59}0 & 413 &  Ecosistema orientado a computación interactiva y documentación científica (\texttt{jupyter}, \texttt{jupyterlab}, \texttt{notebook}). Destaca una infraestructura completa de kernels y servidores Jupyter (\texttt{ipykernel}, \texttt{jupyter-server}, \texttt{jupyter-client}), acompañada de un ecosistema de widgets e interfaces enriquecidas (\texttt{ipywidgets}, \texttt{ipyvuetify}, \texttt{ipyleaflet}, \texttt{ipympl}). Se complementa con herramientas de documentación técnica y generación de sitios estáticos basados en Sphinx (\texttt{sphinx-design}, \texttt{pydata-sphinx-theme}, \texttt{nbsphinx}, \texttt{myst-parser}), junto a utilidades de testing y validación de notebooks (\texttt{nbval}, \texttt{nbmake}, \texttt{pytest-jupyter}).\\ \hline
+	\cellcolor[RGB]{235,98,59}1 & 1197 & Ecosistema moderno de desarrollo web asíncrono y APIs (\texttt{fastapi}, \texttt{starlette}, \texttt{pydantic}, \texttt{uvicorn}), con soporte completo para autenticación y seguridad (\texttt{cryptography}, \texttt{pyjwt}, \texttt{authlib}, \texttt{bcrypt}). Destaca una integración masiva con infraestructura para IA Generativa y LLMs (\texttt{openai}, \texttt{anthropic}, \texttt{langchain}, \texttt{llama-index}, \texttt{pydantic-ai}, \texttt{litellm}), apoyada por clientes de red asíncronos (\texttt{httpx}, \texttt{aiohttp}) y herramientas de observabilidad y telemetría (\texttt{opentelemetry-api}, \texttt{opentelemetry-sdk}, \texttt{logfire}, \texttt{sentry-sdk}). Se complementa con conectores a múltiples bases de datos y servicios cloud (\texttt{pymongo}, \texttt{redis}, \texttt{sqlalchemy}, \texttt{boto3}, \texttt{azure-core}), orquestación de agentes y flujos de trabajo (\texttt{langgraph}, \texttt{celery}, \texttt{prefect}, \texttt{ray}) y soporte para el protocolo MCP (\texttt{mcp}, \texttt{fastmcp}). \\ \hline
+	\cellcolor[RGB]{235,137,59}2 & 867 & Ecosistema dominado casi en su totalidad por definiciones de tipos estáticos para AWS (\texttt{types-boto3}, \texttt{types-aiobotocore}), cubriendo de forma exhaustiva la práctica totalidad de servicios de la nube de Amazon, tanto en su variante síncrona como asíncrona. Más allá de las anotaciones de tipo, se observan utilidades de análisis estático y herramientas de datos de alto rendimiento (\texttt{polars}, \texttt{blake3}, \texttt{pyzstd}), junto a componentes auxiliares de serialización y reflexión de tipos (\texttt{databind.core}, \texttt{databind.json}, \texttt{typeapi}). \\ \hline
+	\cellcolor[RGB]{235,176,59}3 & 641 &  Ecosistema centrado en análisis y manipulación de datos tabulares y científicos (\texttt{pandas}, \texttt{polars}, \texttt{dask}, \texttt{xarray}, \texttt{numpy}), con soporte extenso para formatos de archivo y serialización (\texttt{pyarrow}, \texttt{fastparquet}, \texttt{openpyxl}, \texttt{pyiceberg}, \texttt{fastavro}). Destaca una infraestructura amplia de conectividad con bases de datos relacionales y analíticas (\texttt{sqlalchemy}, \texttt{duckdb}, \texttt{psycopg2}, \texttt{connectorx}, \texttt{clickhouse-connect}), junto a herramientas de computación distribuida y procesamiento a escala (\texttt{pyspark}, \texttt{ray}, \texttt{datafusion}, \texttt{modin}). Se complementa con un ecosistema de visualización y geoespacial (\texttt{plotly}, \texttt{bokeh}, \texttt{geopandas}, \texttt{cartopy}, \texttt{folium}) y librerías científicas de dominio específico (\texttt{astropy}, \texttt{stumpy}, \texttt{statsmodels}).\\ \hline
+	\cellcolor[RGB]{235,215,59}4 & 1128 & Ecosistema orientado al desarrollo, empaquetado y control de calidad de software Python (\texttt{setuptools}, \texttt{flit}, \texttt{hatchling}, \texttt{build}, \texttt{twine}). Destaca una infraestructura muy extensa de testing y cobertura (\texttt{pytest}, \texttt{pytest-cov}, \texttt{pytest-mock}, \texttt{pytest-benchmark}, \texttt{tox}), acompañada de un conjunto exhaustivo de herramientas de análisis estático, linting y formateo (\texttt{mypy}, \texttt{flake8}, \texttt{pylint}, \texttt{black}, \texttt{isort}, \texttt{ruff}). Se complementa con generación de documentación técnica basada en Sphinx (\texttt{sphinx}, \texttt{sphinx-rtd-theme}, \texttt{sphinxcontrib-*}), junto a frameworks de GUI e interfaces de escritorio (\texttt{kivy}, \texttt{qtpy}) y herramientas de empaquetado y distribución de aplicaciones (\texttt{pyinstaller}, \texttt{nuitka}, \texttt{cibuildwheel}). \\ \hline
+	\cellcolor[RGB]{215,235,59}5 & 1169 & Ecosistema orientado al aprendizaje automático profundo y la computación científica de alto rendimiento, articulado en torno a los principales frameworks de deep learning (\texttt{tensorflow}, \texttt{torch}, \texttt{jax}, \texttt{keras}, \texttt{flax}, \texttt{mxnet}). Incorpora una infraestructura GPU muy extensa basada en bibliotecas NVIDIA (\texttt{nvidia-cublas-cu12}, \texttt{nvidia-cudnn-cu12}, \texttt{nvidia-cuda-nvcc-cu12}, \texttt{triton}) junto a aceleradores de inferencia y optimización de modelos (\texttt{onnxruntime}, \texttt{vllm}, \texttt{deepspeed}, \texttt{bitsandbytes}, \texttt{optimum}, \texttt{torch-tensorrt}). Destaca un completo stack de procesamiento del lenguaje natural y modelos generativos (\texttt{transformers}, \texttt{tokenizers}, \texttt{sentence-transformers}, \texttt{huggingface-hub}, \texttt{peft}, \texttt{trl}, \texttt{diffusers}, \texttt{accelerate}), acompañado de soporte para visión artificial (\texttt{torchvision}, \texttt{opencv-python}, \texttt{Pillow}, \texttt{kornia}, \texttt{timm}, \texttt{albumentations}) y procesamiento de audio (\texttt{librosa}, \texttt{soundfile}, \texttt{torchaudio}). Se complementa con herramientas de computación científica de propósito general (\texttt{numpy}, \texttt{scipy}, \texttt{matplotlib}, \texttt{scikit-learn}, \texttt{statsmodels}), gestión de datos a escala (\texttt{datasets}, \texttt{dask}, \texttt{fsspec}) y aprendizaje por refuerzo (\texttt{gymnasium}, \texttt{ray}, \texttt{mujoco}, \texttt{brax}). \\ \hline
+	\cellcolor[RGB]{176,235,59}6 & 179 & Ecosistema centrado en la aceleración GPU mediante CUDA y el stack RAPIDS para computación analítica a escala, articulado en torno a las interfaces de bajo nivel de CUDA (\texttt{cuda-bindings}, \texttt{cuda-python}, \texttt{cuda-core}, \texttt{cuda-toolkit}) y las bibliotecas de álgebra lineal y procesamiento masivo en GPU (\texttt{cupy}, \texttt{numba-cuda}, \texttt{nvidia-cudnn-frontend}, \texttt{nvidia-cutlass-dsl}). Incorpora el ecosistema RAPIDS completo para análisis de datos sobre GPU (\texttt{cudf}, \texttt{pylibcudf}, \texttt{rmm}, \texttt{kvikio}, \texttt{dask-cuda}, \texttt{dask-cudf}, \texttt{rapidsmpf}), junto a soporte de imagen y compresión acelerada (\texttt{nvidia-nvimgcodec-cu12}, \texttt{nvidia-nvjpeg-cu12}, \texttt{nvidia-libnvcomp}). Destaca una infraestructura de testing y garantía de calidad muy consolidada (\texttt{hypothesis}, \texttt{hypothesis-crosshair}, \texttt{dpcontracts}, \texttt{fixtures}, \texttt{testtools}, \texttt{stestr}, \texttt{codecov}), acompañada de herramientas de análisis estático y seguridad (\texttt{bandit}, \texttt{autopep8}, \texttt{pycodestyle}, \texttt{pydocstyle}, \texttt{pyupgrade}). Se incluye el stack completo de procesamiento del lenguaje natural de spaCy (\texttt{spacy}, \texttt{thinc}, \texttt{blis}, \texttt{preshed}, \texttt{srsly}, \texttt{weasel}) con soporte multilingüe extendido (\texttt{sudachipy}, \texttt{natto-py}, \texttt{ufal.udpipe}), una infraestructura de herramientas CLI orientada a OpenStack (\texttt{cliff}, \texttt{oslo.config}, \texttt{oslo.utils}, \texttt{pbr}, \texttt{stevedore}, \texttt{reno}) y utilidades de computación numérica de alta precisión (\texttt{mpmath}, \texttt{python-gmp}, \texttt{Cython}, \texttt{pyarrow}, \texttt{pandas}). \\ \hline
+	\cellcolor[RGB]{137,235,59}7 & 157 &  Ecosistema centrado en la integración con la nube de Google y la comunicación entre servicios mediante gRPC y Protocol Buffers, articulado en torno a las bibliotecas principales de Google Cloud (\texttt{google-api-core}, \texttt{google-auth}, \texttt{google-cloud-core}, \texttt{proto-plus}, \texttt{protobuf}, \texttt{grpcio}). Cubre un amplio abanico de servicios gestionados de GCP, incluyendo almacenamiento y bases de datos (\texttt{google-cloud-storage}, \texttt{google-cloud-bigquery}, \texttt{google-cloud-bigtable}, \texttt{google-cloud-spanner}, \texttt{google-cloud-firestore}, \texttt{google-cloud-datastore}), mensajería y streaming (\texttt{google-cloud-pubsub}, \texttt{google-cloud-pubsublite}), seguridad y gestión de secretos (\texttt{google-cloud-kms}, \texttt{google-cloud-secret-manager}, \texttt{google-cloud-dlp}, \texttt{tink}), e inteligencia artificial aplicada (\texttt{google-cloud-vision}, \texttt{google-cloud-language}, \texttt{google-cloud-speech}, \texttt{google-generativeai}, \texttt{google-cloud-videointelligence}). Incorpora infraestructura para pipelines de MLOps y procesamiento a escala (\texttt{kfp}, \texttt{apache-beam}, \texttt{google-cloud-dataproc}, \texttt{tensorflow-serving-api}, \texttt{torchx}), junto a herramientas de autenticación y autorización OAuth (\texttt{google-auth-httplib2}, \texttt{oauth2client}, \texttt{pyasn1}, \texttt{rsa}, \texttt{pyu2f}). Se complementa con utilidades de testing orientadas a entornos cloud (\texttt{google-cloud-testutils}, \texttt{testcontainers}, \texttt{aioresponses}, \texttt{testslide}), análisis estático y refactorización de código (\texttt{libcst}, \texttt{pyannotate}, \texttt{mypy-extensions}, \texttt{pyre-check}) y herramientas de búsqueda vectorial y bases de datos externas (\texttt{google-cloud-vectorsearch}, \texttt{pinecone}, \texttt{opensearch-protobufs}).\\ \hline
+	\cellcolor[RGB]{98,235,59}8 & 2 & Componente no conexa con ansible. \\ \hline
+	\cellcolor[RGB]{59,235,59}9 & 205 &  Ecosistema orientado a la documentación técnica moderna y la orquestación de pipelines de datos, articulado en torno a MkDocs como plataforma principal de generación de documentación (\texttt{mkdocs}, \texttt{mkdocs-material}, \texttt{mkdocstrings}, \texttt{mkdocs-jupyter}, \texttt{mkdocs-gen-files}, \texttt{mkdocs-literate-nav}) con un extenso catálogo de plugins y extensiones asociadas (\texttt{mkdocs-redirects}, \texttt{mkdocs-minify-plugin}, \texttt{mkdocs-macros-plugin}, \texttt{mkdocs-rss-plugin}, \texttt{mkdocs-glightbox}, \texttt{pymdown-extensions}). Incorpora el framework Kedro para la construcción de pipelines de datos reproducibles y mantenibles (\texttt{kedro}, \texttt{kedro-datasets}), con conectores para una amplísima variedad de formatos y backends de almacenamiento incluyendo Spark y Delta Lake (\texttt{kedro-datasets[spark-]}, \texttt{kedro-datasets[delta-]}), bases de datos vectoriales (\texttt{kedro-datasets[chromadb-]}), modelos de lenguaje (\texttt{kedro-datasets[langchain-]}, \texttt{kedro-datasets[langfuse-]}) y formatos tabulares (\texttt{kedro-datasets[pandas-]}, \texttt{kedro-datasets[polars-*]}). Destaca el framework de consulta analítica Ibis con soporte para múltiples backends (\texttt{ibis-framework[duckdb]}, \texttt{ibis-framework[bigquery]}, \texttt{ibis-framework[postgres]}, \texttt{ibis-framework[pyspark]}, \texttt{ibis-framework[snowflake]}), junto a herramientas de computación tensorial dispersa (\texttt{sparse}, \texttt{zarr}, \texttt{numcodecs}, \texttt{finch-mlir}) y bibliotecas de deep learning funcional basadas en JAX (\texttt{equinox}, \texttt{jaxtyping}). Se complementa con utilidades de series temporales (\texttt{u8darts-all}), optimización de hiperparámetros (\texttt{ConfigSpace}) y herramientas auxiliares de testing y validación de proyectos (\texttt{pytest-cases}, \texttt{validate-pyproject}, \texttt{pytest-accept}).\\ \hline
+	\cellcolor[RGB]{59,235,98}10 & 46 &  Ecosistema centrado en la transformación y orquestación de datos analíticos mediante dbt y Prefect, articulado en torno al núcleo de dbt (\texttt{dbt-core}, \texttt{dbt-common}, \texttt{dbt-adapters}, \texttt{dbt-protos}) con adaptadores para los principales data warehouses en la nube (\texttt{dbt-bigquery}, \texttt{dbt-snowflake}, \texttt{dbt-postgres}, \texttt{dbt-singlestore}). Incorpora el stack de orquestación de Prefect con integraciones específicas para distintos backends (\texttt{prefect-dbt}, \texttt{prefect-sqlalchemy}, \texttt{prefect-gcp}, \texttt{prefect_shell}), junto a conectores de datos tabulares y utilidades de soporte (\texttt{agate}, \texttt{daff}, \texttt{mashumaro}, \texttt{snowplow-tracker}, \texttt{snowflake-connector-python}). Destaca un conjunto completo de herramientas de web scraping y extracción de contenido, con Scrapy como framework principal (\texttt{scrapy}, \texttt{parsel}, \texttt{itemadapter}, \texttt{itemloaders}, \texttt{queuelib}, \texttt{pydispatcher}) acompañado de utilidades de navegación programática y análisis HTML (\texttt{pyppeteer}, \texttt{requests-html}, \texttt{cssselect}, \texttt{w3lib}, \texttt{fake-useragent}, \texttt{hyperscan}, \texttt{protego}) y extracción de contenido de medios y noticias (\texttt{newspaper3k}, \texttt{feedfinder2}, \texttt{tinysegmenter}, \texttt{jieba3k}). Se complementa con un amplio conjunto de stubs de tipos para bibliotecas populares (\texttt{types-jinja2}, \texttt{types-Flask}, \texttt{types-Werkzeug}, \texttt{types-click}, \texttt{types-MarkupSafe}) y utilidades de gestión de rutas y ficheros (\texttt{pathspec}, \texttt{parsedatetime}).\\ \hline
+	\cellcolor[RGB]{59,235,137}11 & 115 &  Ecosistema orientado a la construcción de servicios web de alto rendimiento y plataformas MLOps de producción, articulado en torno a servidores ASGI/WSGI ultrarrápidos (\texttt{granian}, \texttt{uvloop}, \texttt{rloop}) y el stack de MLOps de MLRun (\texttt{mlrun}, \texttt{storey}, \texttt{v3io}, \texttt{v3io-frames}, \texttt{v3iofs}, \texttt{mlrun-pipelines-kfp-common}, \texttt{mlrun-pipelines-kfp-v1-8}). Incorpora un amplio conjunto de integraciones con proveedores cloud, cubriendo AWS (\texttt{boto3-stubs}, \texttt{aws-sam-translator}), Google Cloud (\texttt{google-cloud-bigquery}, \texttt{google-cloud-bigquery-storage}), Azure (\texttt{azure-core}, \texttt{azure-identity}, \texttt{azure-keyvault-secrets}) y Alibaba Cloud (\texttt{aliyun-python-sdk-core}, \texttt{aliyun-python-sdk-kms}, \texttt{aliyun-python-sdk-sts}, \texttt{oss2}), junto a conectores de bases de datos y mensajería (\texttt{sqlalchemy}, \texttt{pymysql}, \texttt{psycopg2-binary}, \texttt{kafka-python}, \texttt{redis}, \texttt{taos-ws-py}). Destaca una infraestructura de validación y documentación de APIs (\texttt{prance}, \texttt{openapi-spec-validator}, \texttt{swagger-spec-validator}, \texttt{flex}), acompañada de herramientas de serialización y procesamiento de datos eficiente (\texttt{orjson}, \texttt{ruamel.yaml}, \texttt{deepdiff}, \texttt{jsonpickle}, \texttt{orderly-set}, \texttt{crcmod}). Se complementa con utilidades de benchmarking y profiling (\texttt{pytest-codspeed}, \texttt{pytest-benchmark}, \texttt{memray}, \texttt{objgraph}), gestión de versiones y configuración (\texttt{bump2version}, \texttt{python-dotenv}, \texttt{semver}, \texttt{dependency-injector}) y soporte para control de versiones alternativo (\texttt{mercurial}).\\ \hline
+	\cellcolor[RGB]{59,235,176}12 & 5 &  \\ \hline
+	\cellcolor[RGB]{59,235,215}13 & 28 &  \\ \hline
+	\cellcolor[RGB]{59,215,235}14 & 246 &  \\ \hline
+	\cellcolor[RGB]{59,176,235}15 & 220 &  \\ \hline
+	\cellcolor[RGB]{59,137,235}16 & 4 &  \\ \hline
+	\cellcolor[RGB]{59,98,235}17 & 5 &  \\ \hline
+	\cellcolor[RGB]{59,59,235}18 & 64 &  \\ \hline
+	\cellcolor[RGB]{98,59,235}19 & 4 &  \\ \hline
+	\cellcolor[RGB]{137,59,235}20 & 4 &  \\ \hline
+	\cellcolor[RGB]{176,59,235}21 & 18 &  \\ \hline
+	\cellcolor[RGB]{215,59,235}22 & 14 &  \\ \hline
+	\cellcolor[RGB]{235,59,215}23 & 9 &  \\ \hline
+	\cellcolor[RGB]{235,59,176}24 & 10 &  \\ \hline
+	\cellcolor[RGB]{235,59,137}25 & 7 &  \\ \hline
+	\cellcolor[RGB]{235,59,98}26 & 8 &  \\ \hline
+\end{longtable}
+\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{Imagenes/communities_donut}
+	\caption{}
+	\label{fig:communitiesdonut}
+\end{figure}
 
 	\chapter{Herramienta de visualización de la red}
 	
@@ -569,9 +662,9 @@ Para hacer la visualización más intuitiva del grafo en la herramienta se incor
 	$$\mathbf{F}_{\text{g}, i} = - k_g G_i \mathbf{p}_i$$
 	donde $k_g$ es \texttt{gravity} y $G_i$ corresponde a su grado normalizado (\texttt{norm\_degrees\_2d}).
 	
-	\item \textbf{Fuerza repulsiva}: para que el programa no se congele al calcular la fuerza de repulsión de manera tradicional (complejidad $O(N^2)$) se calcula en cada frame las fuerzas de repulsión para un subconjunto $\mathcal{R}$ de tamaño $N_R = 300$ (\texttt{sample\_size}). De esta manera, aunque el calculo no es del todo exacto, se agilizan los cálculos y se asume que la distribución visual final no variaría demasiado en el equilibrio:
+	\item \textbf{Fuerza repulsiva}: para que el programa no se congele al calcular la fuerza de repulsión de manera tradicional se calcula en cada frame las fuerzas de repulsión para un subconjunto $\mathcal{R}$ de tamaño $N_R = 300$ (\texttt{sample\_size}). De esta manera, aunque el calculo no es del todo exacto, se agilizan los cálculos y se asume que la distribución visual final no variaría demasiado en el equilibrio:
 	$$\mathbf{F}_{\text{r}, i} = \sum_{j \in \mathcal{R}} k_r \frac{\mathbf{p}_i - \mathbf{p}_j}{\|\mathbf{p}_i - \mathbf{p}_j\|^2 + 1}$$
-	donde $k_r$ es outward\_push. Se añade un \(+1\) en el denominador para evitar singularidades en el caso de que dos nodos estén superpuestos.
+	donde $k_r$ es outward\_push. Se añade un \(+1\) en el denominador para evitar singularidades en el caso de que dos nodos estén superpuestos. Se utiliza esta formula de la fuerza para que los nodos tengan más alcance en la repulsión para reducir las aglomeraciones de nodos.
 \end{itemize}
 
 A partir de las fuerzas se calcula la velocidad en cada frame asumiendo un $\delta t =1$ y masa unitaria mediante integración numérica con un coeficiente de amortiguamiento $\mu$ caracterizado por la variable \texttt{"friction"} y limitada por una velocidad máxima (\texttt{"max\_speed"}).
