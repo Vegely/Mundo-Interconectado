@@ -4,7 +4,6 @@ import random
 
 ig.set_random_number_generator(random.Random(42))
 
-
 def generate_cycle_palette(n, saturation=0.75, value=0.92):
     palette = []
     for i in range(n):

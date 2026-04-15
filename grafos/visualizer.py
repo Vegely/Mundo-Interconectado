@@ -160,15 +160,14 @@ def precompute_metrics(g):
     ug         = g.as_undirected(combine_edges="first")
     comm       = ug.community_multilevel()
     membership = np.array(comm.membership, dtype=np.int32)
-    n_comm     = membership.max() + 1
-    print(f"    {n_comm} communities found")
-
+    print(f"len(comm)={len(comm)}, membership.max()+1={membership.max()+1}")
+    n_comm     = len(comm)
+    
     def cmap_cycle_highlight(norm):
         return node_colors_mode7(cycle_id, cycle_palette)
 
     def cmap_community(norm):
         return generate_community_colors(membership, n_comm)
-
     metrics = {
         "pagerank":     (normalize_log(pr),               "plasma",          "PageRank"),
         "in_degree":    (normalize_log(in_deg),           "inferno",         "In-Degree  (dependents)"),
@@ -199,12 +198,7 @@ def main():
     g = ig.Graph.Read_GraphML("pypi_multiseed_10k.graphml")
     print(f"  {g.vcount()} nodes, {g.ecount()} edges")
 
-    print("Computing layout…")
-    layout   = g.layout_drl()
-    pos      = np.array(layout.coords, dtype=np.float32)
-    velocity = np.zeros_like(pos)
-    edges    = np.array([e.tuple for e in g.es], dtype=np.uint32)
-
+    
     in_deg  = np.array(g.indegree(),  dtype=np.float64)
     out_deg = np.array(g.outdegree(), dtype=np.float64)
     log_deg         = np.log1p(out_deg + in_deg)
@@ -217,6 +211,14 @@ def main():
 
     cycle_id      = metrics["_cycle_id"]
     cycle_palette = metrics["_cycle_palette"]
+
+
+
+    print("Computing layout…")
+    layout   = g.layout_drl()
+    pos      = np.array(layout.coords, dtype=np.float32)
+    velocity = np.zeros_like(pos)
+    edges    = np.array([e.tuple for e in g.es], dtype=np.uint32)
 
     print("Precomputing mode-7 edge partitions…")
     intra_edges, inter_edges = compute_mode7_edge_masks(edges, cycle_id)
