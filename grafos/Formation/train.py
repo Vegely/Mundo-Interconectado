@@ -1,10 +1,3 @@
-"""
-train.py
-======================================================
-Trains 6 distinct formation models on the real PyPI network.
-Includes advanced models: ERGM, Kronecker, and BTER.
-"""
-
 import warnings
 import json
 import multiprocessing
@@ -16,7 +9,7 @@ warnings.filterwarnings("ignore")
 
 GRAPH_FILE = "pypi_multiseed_10k.graphml"
 SEARCH_ITERATIONS = 250    # Random parameter combos per model
-GRAPHS_PER_TEST   = 8     # Graphs to average per test
+GRAPHS_PER_TEST   = 8      # Graphs to average per test
 OUTPUT_FILE       = "best_parameters.json"
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -38,10 +31,6 @@ def compute_stats(g: ig.Graph) -> np.ndarray:
     
     return np.array([clust, in_ent, out_ent, g.reciprocity()])
 
-# ══════════════════════════════════════════════════════════════════════════════
-# THE 6 GENERATIVE ARCHITECTURES
-# ══════════════════════════════════════════════════════════════════════════════
-
 def copying_model(n, m_real, beta, m_init):
     rng = np.random.default_rng()
     edges = [(i, i + 1) for i in range(m_init - 1)]
@@ -56,24 +45,6 @@ def copying_model(n, m_real, beta, m_init):
         for w in targets:
             edges.append((t, w))
             adj_out[t].append(w)
-    return ig.Graph(n=n, edges=edges, directed=True)
-
-def hybrid_model(n, m_real, m_init, p_copy):
-    rng = np.random.default_rng()
-    edges, in_deg, adj_out = [], np.zeros(n, dtype=float), [[] for _ in range(n)]
-    for i in range(m_init):
-        for j in range(m_init):
-            if i != j:
-                edges.append((i, j)); in_deg[j] += 1; adj_out[i].append(j)
-    for t in range(m_init, n):
-        w = in_deg[:t] + 1.0 
-        prototype = rng.choice(t, p=w/w.sum())
-        targets = {prototype}
-        for neighbor in adj_out[prototype]:
-            if neighbor != t and rng.random() < p_copy: targets.add(neighbor)
-        if rng.random() < 0.2: targets.add(rng.integers(0, t))
-        for tgt in targets:
-            edges.append((t, tgt)); in_deg[tgt] += 1; adj_out[t].append(tgt)
     return ig.Graph(n=n, edges=edges, directed=True)
 
 def sbm_pa_model(n, m_real, m, n_comm, mu, p_recip):

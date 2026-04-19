@@ -53,7 +53,8 @@
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{0.96,0.96,0.94}
-
+\DefTblrTemplate{contfoot-text}{default}{Continúa en la página siguiente}
+\DefTblrTemplate{conthead-text}{default}{(Continuación)}
 \lstset{
 	language=Python,
 	backgroundcolor=\color{backcolour},
@@ -566,9 +567,8 @@ Para analizar las comunidades se utiliza el algoritmo de Louvain aplicado sobre 
 
 
 \begin{longtblr}[
-	caption = {Descripción de las comunidades...},
+	caption = {Descripción de las comunidades de la red de dependencias de Python.},
 	label   = {tab:communities_desc},
-	remark{Note} = {Continúa en la siguiente página...},
 	]{
 		colspec  = {|c|c|X|},
 		rowsep   = 4pt,
@@ -592,7 +592,7 @@ Para analizar las comunidades se utiliza el algoritmo de Louvain aplicado sobre 
 	\SetCell{bg={rgb,255:red,59;green,235;blue,215}}  13 & 28   & Comunidad centrada en el análisis sintáctico y la representación estructurada de texto. Agrupa \texttt{tree-sitter} y sus gramáticas para múltiples lenguajes (\texttt{tree-sitter-python}, \texttt{tree-sitter-javascript}, \texttt{tree-sitter-rust}, entre otros), utilizados para el análisis de código fuente. Incluye además \texttt{textual} para interfaces de terminal, \texttt{docling-core} y \texttt{docling-parse} para extracción de documentos, y \texttt{latex2mathml} para conversión de fórmulas matemáticas. \\
 	\SetCell{bg={rgb,255:red,59;green,215;blue,235}}  14 & 246  & Comunidad dominada por el AWS Cloud Development Kit (\texttt{aws-cdk-lib} y la familia \texttt{aws-cdk.aws-*}), que proporciona abstracciones de infraestructura como código para prácticamente todos los servicios de Amazon Web Services. El núcleo lo forman \texttt{constructs}, \texttt{jsii} y \texttt{aws-cdk.core}, con módulos especializados para servicios como \texttt{aws-cdk.aws-lambda}, \texttt{aws-cdk.aws-ec2}, \texttt{aws-cdk.aws-s3}, \texttt{aws-cdk.aws-rds} y \texttt{aws-cdk.aws-eks}, entre muchos otros. \\
 	\SetCell{bg={rgb,255:red,59;green,176;blue,235}}  15 & 220  & Comunidad centrada en el framework de red asíncrono \texttt{twisted} y el extenso ecosistema de bindings \texttt{pyobjc} para macOS. El componente \texttt{twisted} incluye soporte para protocolos de red, TLS y concurrencia (\texttt{automat}, \texttt{hyperlink}, \texttt{incremental}), mientras que \texttt{pyobjc} expone prácticamente todos los frameworks nativos de Apple (\texttt{pyobjc-framework-Cocoa}, \texttt{pyobjc-framework-Metal}, \texttt{pyobjc-framework-CoreML}, entre otros). También incluye \texttt{rinohtype} para composición tipográfica de documentos PDF y \texttt{mido} para el manejo de datos MIDI. \\
-	\SetCell{bg={rgb,255:red,59;green,137;blue,235}}  16 & 4    & Comunidad mínima formada por \texttt{Pyro4} y sus dependencias directas (\texttt{serpent}, \texttt{selectors34}), que implementan un sistema de objetos remotos (\textit{Remote Object System}) para Python, permitiendo la comunicación transparente entre procesos distribuidos. \\
+	\SetCell{bg={rgb,255:red,59;green,137;blue,235}}  16 & 4    & Comunidad mínima formada por \texttt{Pyro4} y sus dependencias directas (\texttt{serpent}, \texttt{selectors34}), que implementan un sistema de objetos remotos para Python, permitiendo la comunicación transparente entre procesos distribuidos. \\
 	\SetCell{bg={rgb,255:red,59;green,98;blue,235}}   17 & 5    & Comunidad pequeña agrupada en torno a utilidades de logging con color y formato legible para la terminal, representada por \texttt{coloredlogs} y \texttt{humanfriendly}, junto con \texttt{capturer} para captura de salida estándar, y compatibilidades de bajo nivel (\texttt{monotonic}, \texttt{pyreadline}). \\
 	\SetCell{bg={rgb,255:red,59;green,59;blue,235}}   18 & 64   & Comunidad formada íntegramente por el framework multiagente \texttt{ag2} (evolución de AutoGen) y sus numerosas variantes de instalación opcionales (\texttt{ag2[openai]}, \texttt{ag2[anthropic]}, \texttt{ag2[langchain]}, \texttt{ag2[rag]}, \texttt{ag2[browser-use]}, entre otras), que cubren integraciones con distintos proveedores de modelos de lenguaje, bases de datos vectoriales, herramientas de búsqueda y capacidades multimodales para la construcción de sistemas de agentes autónomos. \\
 	\SetCell{bg={rgb,255:red,98;green,59;blue,235}}   19 & 4    & Comunidad mínima compuesta por \texttt{mitmproxy-rs} y sus variantes específicas por plataforma (\texttt{mitmproxy-windows}, \texttt{mitmproxy-linux}, \texttt{mitmproxy-macos}), que proporcionan los componentes nativos en Rust para el proxy HTTP/HTTPS interactivo \texttt{mitmproxy}. \\
@@ -602,12 +602,40 @@ Para analizar las comunidades se utiliza el algoritmo de Louvain aplicado sobre 
 	\SetCell{bg={rgb,255:red,235;green,59;blue,215}}  23 & 9    & Comunidad pequeña formada por el SDK nativo de Python para Amazon Bedrock (\texttt{aws-sdk-bedrock-runtime}) y la pila de librerías Smithy (\texttt{smithy-core}, \texttt{smithy-http}, \texttt{smithy-aws-core}, \texttt{smithy-json}), que implementan el framework de modelado de servicios de AWS para la generación y consumo de APIs cloud de nueva generación. \\
 	\SetCell{bg={rgb,255:red,235;green,59;blue,176}}  24 & 10   & Comunidad centrada en el desarrollo de interfaces de usuario interactivas en la terminal. Agrupa \texttt{inquirer} para menús de selección interactivos, \texttt{blessed} y \texttt{jinxed} para el control de terminal multiplataforma, \texttt{readchar} para la lectura de teclas, y extensiones de Sphinx como \texttt{sphinx-paramlinks} y \texttt{sphinxcontrib-manpage} para documentación de parámetros y páginas de manual. \\
 	\SetCell{bg={rgb,255:red,235;green,59;blue,137}}  25 & 7    & Comunidad mínima formada por el ecosistema \texttt{itkwasm} para el procesamiento de imágenes médicas en WebAssembly, incluyendo \texttt{itkwasm-image-io}, \texttt{itkwasm-downsample} y sus variantes para los entornos de ejecución Emscripten y WASI, que permiten ejecutar algoritmos de la librería ITK directamente en el navegador o en entornos WASM. \\
-	\SetCell{bg={rgb,255:red,235;green,59;blue,98}}   26 & 8    & Comunidad mínima centrada en la verificación matemática formal, compuesta por \texttt{math-verify} para la comprobación automática de soluciones matemáticas y \texttt{latex2sympy2\_extended} para la conversión de expresiones \LaTeX{} a objetos simbólicos de SymPy, con variantes para distintas versiones de ANTLR4 (\texttt{antlr4\_9\_3}, \texttt{antlr4\_11\_0}, \texttt{antlr4\_13\_2}). Se utiliza principalmente en el contexto de evaluación de modelos de lenguaje en tareas matemáticas (\texttt{lighteval[math]}). \\
-\end{longtblr}
+	\SetCell{bg={rgb,255:red,235;green,59;blue,98}}   26 & 8    & Comunidad mínima centrada en la verificación matemática formal, compuesta por \texttt{math-verify} para la comprobación automática de soluciones matemáticas y \texttt{latex2sympy2\_extended} para la conversión de expresiones \LaTeX{} a objetos simbólicos de SymPy, con variantes para distintas versiones de ANTLR4 (\texttt{antlr4\_9\_3}, \texttt{antlr4\_11\_0}, \texttt{antlr4\_13\_2}). Se utiliza principalmente en el contexto de evaluación de modelos de lenguaje en tareas matemáticas (\texttt{lighteval[math]}). \\\end{longtblr}
 
 
 	\chapter{Hipótesis de modelo de la red}
+	En este capítulo se modela la red mediante diferentes modelos descritos a continuación, evaluando tanto modelos nulos de referencia como modelos teóricos avanzados para comprender la formación de sus enlaces.
+	
+	\section{Modelos nulos}
+	
+	\subsection{Erdős-Rényi (ER)}
 
+	
+	\subsection{Barabási-Albert (BA)}
+
+	
+	\section{Modelos avanzados}
+	
+	\subsection{Bianconi-Barabási (BB)}
+	Sección escrita en base al artículo \cite{bianconiBarabasi}. 
+	
+	\subsection{Block Two-Level Erdős-Rényi (BTER)}
+	Sección escrita en base al artículo \cite{BTER}. 
+	
+	\subsection{Copying Model}
+	Sección escrita en base al artículo \cite{Copying}.
+	
+	\subsection{Exponential Random Graph Models (ERGM)}
+	Sección escrita en base al artículo \cite{ERGM}.
+	
+	\subsection{Stochastic Kronecker Graphs}
+	Sección escrita en base al artículo \cite{Kronecker}.
+	
+	\subsection{Stochastic Block Model con Preferential Attachment (SBM+PA)}
+	Sección escrita en base al artículo \cite{SBM_PA}. 
+	
 	\chapter{Herramienta de visualización de la red}
 	
 	Para poder explorar de forma interactiva la red de dependencias de Python se desarrolla una herramienta de visualización en tiempo real basada en un motor de físicas implementado íntegramente en Python. La herramienta, recogida en el script \texttt{visualizer.py}. Mediante esta aplicación se puede navegar a través de la red, inspeccionar diferentes métricas en función del nodo y ver como va variando la estructura de la red en función de las físicas escogidas con mejor rendimiento para redes de este tamaño que en Gephi.

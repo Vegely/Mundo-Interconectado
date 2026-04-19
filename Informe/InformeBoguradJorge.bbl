@@ -28,6 +28,47 @@ A.~Clauset, C.~R. Shalizi, and M.~E.~J. Newman, ``Power-law distributions in
   2009. [Online]. Available: \url{http://dx.doi.org/10.1137/070710111}
 \BIBentrySTDinterwordspacing
 
+\bibitem{bianconiBarabasi}
+\BIBentryALTinterwordspacing
+G.~Bianconi and A.-L. Barabási, ``Competition and multiscaling in evolving
+  networks,'' 2000. [Online]. Available:
+  \url{https://arxiv.org/abs/cond-mat/0011029}
+\BIBentrySTDinterwordspacing
+
+\bibitem{BTER}
+\BIBentryALTinterwordspacing
+T.~G. Kolda, A.~Pinar, T.~Plantenga, and C.~Seshadhri, ``A scalable generative
+  graph model with community structure,'' \emph{SIAM Journal on Scientific
+  Computing}, vol.~36, no.~5, p. C424–C452, Jan. 2014. [Online]. Available:
+  \url{http://dx.doi.org/10.1137/130914218}
+\BIBentrySTDinterwordspacing
+
+\bibitem{Copying}
+J.~M. Kleinberg, R.~Kumar, P.~Raghavan, S.~Rajagopalan, and A.~S. Tomkins,
+  ``The web as a graph: Measurements, models, and methods,'' in \emph{Computing
+  and Combinatorics}, T.~Asano, H.~Imai, D.~T. Lee, S.-i. Nakano, and
+  T.~Tokuyama, Eds.\hskip 1em plus 0.5em minus 0.4em\relax Berlin, Heidelberg:
+  Springer Berlin Heidelberg, 1999, pp. 1--17.
+
+\bibitem{ERGM}
+T.~Snijders, ``Markov chain monte carlo estimation of exponential random graph
+  models,'' \emph{Journal of Social Structure}, vol.~3, 06 2002.
+
+\bibitem{Kronecker}
+\BIBentryALTinterwordspacing
+J.~Leskovec, D.~Chakrabarti, J.~Kleinberg, C.~Faloutsos, and Z.~Ghahramani,
+  ``Kronecker graphs: An approach to modeling networks,'' 2009. [Online].
+  Available: \url{https://arxiv.org/abs/0812.4905}
+\BIBentrySTDinterwordspacing
+
+\bibitem{SBM_PA}
+\BIBentryALTinterwordspacing
+G.~Gombojav, D.~Badraa, and D.~Purevsuren, ``A growing stochastic block model
+  with preferential attachment,'' \emph{Journal of Multimedia Information
+  System}, vol.~12, no.~3, pp. 71--80, 2025. [Online]. Available:
+  \url{https://doi.org/10.33851/JMIS.2025.12.3.71}
+\BIBentrySTDinterwordspacing
+
 \bibitem{Martin2011OpenOrd}
 \BIBentryALTinterwordspacing
 S.~Martin, W.~M. Brown, R.~Klavans, and K.~W. Boyack, ``{OpenOrd: An
