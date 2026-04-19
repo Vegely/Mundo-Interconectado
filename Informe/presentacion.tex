@@ -1,0 +1,383 @@
+\documentclass[aspectratio=169, 11pt]{beamer}
+
+% Tema y colores
+\usetheme{Madrid}
+\usecolortheme{default}
+
+% Paquetes esenciales para idioma y codificación
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-tabla,es-noquoting]{babel}
+
+% Matemáticas y gráficos
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{graphicx}      % Needed for \resizebox
+\usepackage{circuitikz}    % Needed for the circuit environment
+\usetikzlibrary{arrows.meta} % Needed for the Stealth arrows in your code
+\usetikzlibrary{shapes,arrows,positioning,calc}
+\usepackage{tikz-3dplot}
+\usepackage{multirow}
+\usepackage{booktabs}
+
+% Hipervínculos
+\usepackage{hyperref}
+\setbeamertemplate{navigation symbols}{}
+% Información del documento
+\title{Análisis de la Red de Dependencias de Python}
+\subtitle{Mundo interconectado. Una introducción práctica a la ciencia de las redes}
+\author[B. Barañski \and J. Bengoa]{Bogurad Barañski Barañska \and Jorge Bengoa Pinedo}
+\date{\today}
+
+\begin{document}
+	
+	%---------------------------------------------------------
+	\begin{frame}
+		\titlepage
+	\end{frame}
+	
+	%---------------------------------------------------------
+	\begin{frame}{Índice}
+		\tableofcontents
+	\end{frame}
+	
+	%---------------------------------------------------------
+	\section{Introducción}
+	
+%---------------------------------------------------------
+	\begin{frame}{Construcción de la red}
+		
+		\begin{block}{Idea}
+			Análisis del ecosistema de dependencias de Python. 
+			\begin{itemize}
+				\item \textbf{Nodos}: paquetes
+				\item \textbf{Aristas}: dependencias
+			\end{itemize}
+		\end{block}
+		
+		\vspace*{-0.5cm}
+		\begin{columns}[t]
+			\begin{column}{0.48\textwidth}
+				\begin{exampleblock}{Construcción de la Red}
+					\begin{itemize}
+						\item \textbf{Método}: \textit{web scraping} (API JSON de PyPI). 
+						\item \textbf{Semillas}: 10 paquetes. 
+						\item \textbf{Algoritmo}: búsqueda recursiva.
+					\end{itemize}
+				\end{exampleblock}
+			\end{column}
+			
+			\begin{column}{0.48\textwidth}
+				\begin{alertblock}{Entorno y Herramientas}
+					\textbf{Hardware:} 
+					\begin{itemize}
+						\item i7-8750H | 16GB RAM | Win 11. 
+					\end{itemize}
+					\vspace{0.1cm}
+					\textbf{Software Principal:} 
+					\begin{itemize}
+						\item \texttt{igraph} y \texttt{networkx}
+						\item \texttt{vispy} y \texttt{matplotlib}
+						\item \texttt{aiohttp} 
+					\end{itemize}
+				\end{alertblock}
+			\end{column}
+		\end{columns}
+	\end{frame}
+	
+	%---------------------------------------------------------
+	\begin{frame}{Objetivos del Estudio}
+		\begin{enumerate}
+			\item \textbf{Visión macroscópica} del ecosistema.
+			\item Identificación de \textbf{hubs}.
+			\item Segmentación de la red por \textbf{comunidades}.
+			\item \textbf{Topología} de la red.
+			\item \textbf{Visualización} mediante una herramienta interactiva propia.
+		\end{enumerate}
+	\end{frame}
+		
+	\begin{frame}{Descripción de la Red}
+		\begin{block}{Grafo dirigido}
+			\begin{itemize}
+				\item $A \rightarrow B$: $A$ depende de $B$. 
+				\item $A \to B \to C$: no hay arista $A \to C$.
+			\end{itemize}
+		\end{block}
+		
+		\begin{columns}[c]
+			\begin{column}{0.4\textwidth}
+				\begin{itemize}
+					\item \textbf{Nodos}: 6765 
+					\item \textbf{Aristas}: 36054 
+					\item \textbf{Densidad}: 0,000788 (Muy baja) 
+					\item \textbf{Clustering medio}: 0,3170 (Mundo pequeño perjudicado)
+					\item \textbf{Clustering global}: 0,03584 (Grupos aislados)
+				\end{itemize}
+			\end{column}
+			
+			\begin{column}{0.5\textwidth}
+				\begin{figure}
+					\centering
+					\includegraphics[width=1\linewidth]{Imagenes/TOTAL_ALL}
+					\caption{Representación de la red a estudiar.}
+				\end{figure}
+			\end{column}
+		\end{columns}
+	\end{frame}
+	
+	\section*{Análisis de la red}
+	\begin{frame}{Conectividad y Componente Gigante}
+		\begin{columns}[c]		
+			\begin{column}{0.45\textwidth}
+				\begin{figure}
+					\centering
+					\includegraphics[width=1\linewidth]{Imagenes/ConectedComponent}
+					\caption{Componente fuertemente conexa en rojo.}
+				\end{figure}
+			\end{column}
+			
+			\begin{column}{0.5\textwidth}
+				\begin{block}{Tipos de conexión}
+					\begin{itemize}
+						\item \textbf{Débil}: ignora la dirección de aristas.
+						\item \textbf{Fuerte}: ida y vuelta (ciclos).
+					\end{itemize}
+				\end{block}
+				\begin{exampleblock}{Componente Gigante}
+					\begin{itemize}
+						\item \textbf{Tamaño}: 6763 nodos (99,97\%).
+						\item \textbf{Nodos aislados}: \texttt{ansible} y \texttt{ansible-core}.
+						\item \textbf{Motivo}: error del parser (regex)
+					\end{itemize}
+				\end{exampleblock}
+			\end{column}
+		\end{columns}
+	\end{frame}
+	
+	\begin{frame}{Análisis de ciclos}
+		\begin{columns}[c]
+			\begin{column}{0.45\textwidth}
+				\begin{itemize}
+					\item \textbf{Componentes fuertemente conexas}: 3727.
+					\item \textbf{Presencia de bucles}: instalaciones complejas y dependencias circulares.
+					\item \textbf{Ciclo mayor}: 3038 paquetes.
+					\item \textbf{Ciclo menor}: \texttt{ryd} $\leftrightarrow$ \texttt{ruamel.yaml}.
+				\end{itemize}
+			\end{column}
+			
+			\begin{column}{0.55\textwidth}
+				\begin{figure}
+					\centering
+					\includegraphics[width=0.9\linewidth]{Imagenes/pypi_ciclos_categorias.png}
+					\caption{Distribución por áreas en el ciclo mayor.}
+				\end{figure}
+			\end{column}
+		\end{columns}
+	\end{frame}
+	
+	\begin{frame}{Distancias}
+		\begin{block}{Profundidad de la red}
+			\begin{description}
+				\item[\textbf{Diámetro (25)}:] profundidad máxima de dependencias en el peor de los casos.
+				\item[\textbf{Radio Entrada (6)}:] accesibilidad de los paquetes básicos (pasos para alcanzarlos).
+				\item[\textbf{Radio Salida (13)}:] facilidad de instalación (profundidad mínima requerida).
+			\end{description}
+		\end{block}
+		
+		\begin{columns}
+			\begin{column}{0.5\textwidth}
+				\begin{figure}
+					\centering
+					\includegraphics[width=0.8\linewidth]{Imagenes/OUT_center}
+					\caption{Grado de salida.}
+					\label{fig:outcenter}
+				\end{figure}
+			\end{column}
+			\begin{column}{0.5\textwidth}
+				\begin{figure}
+					\centering
+					\includegraphics[width=0.8\linewidth]{Imagenes/IN_Center}
+					\caption{Grado de entrada.}
+					\label{fig:incenter}
+				\end{figure}
+			\end{column}
+		\end{columns}
+	\end{frame}
+	
+	%---------------------------------------------------------
+	\begin{frame}{Distribución de grado y ley de potencias}
+		\begin{columns}[T]
+			
+			% Columna Izquierda: Fórmulas MLE
+			\begin{column}{0.5\textwidth}
+				\begin{block}{Estimación de $\alpha$ (MLE)}
+					Resolución de:
+					\begin{equation*}
+					\frac{\zeta'(\hat{\alpha}, x_{\min})}{\zeta(\hat{\alpha}, x_{\min})} = -\frac{1}{n} \sum_{i=1}^n \ln x_i
+					\end{equation*}
+					
+					\vspace{0.2cm}
+					
+					Aproximación en tiempo discreto:
+					\begin{equation*}
+					\hat{\alpha} \approx 1 + n \left[ \sum_{i=1}^n \ln \frac{x_i}{x_{\min} - 0.5} \right]^{-1}
+					\end{equation*}
+				\end{block}
+			\end{column}
+			
+			% Columna Derecha: KS y Bootstrapping
+			\begin{column}{0.48\textwidth}
+				\begin{exampleblock}{Estimación de $x_{\min}$}
+					\textbf{1. Grid search:}
+					\begin{itemize}
+						\item Minimización de la distancia entre la distribución empírica $S(x)$ y la teórica $P(x)$:
+					\end{itemize}
+					\begin{equation*}
+					KS = \max_{x \ge x_{\min}} |S(x) - P(x)|
+					\end{equation*}
+					
+					\vspace{0.2cm}
+					
+					\textbf{2. Cálculo de Incertidumbre:}
+					\begin{itemize}
+						\item \textbf{Bootstrapping}.
+						\item Conjuntos sintéticos para obtener la desviación típica de $\hat{x}_{\min}$.
+					\end{itemize}
+				\end{exampleblock}
+			\end{column}
+			
+		\end{columns}
+	\end{frame}
+	
+	%---------------------------------------------------------
+	\begin{frame}{Test de bondad de ajuste}
+		\begin{block}{¿Por qué?}
+			\begin{itemize}
+				\item Una realización aleatoria de una ley de potencias puede no parecerlo por el ruido.
+				\item ¿Desviaciones por muestreo o porque los datos provienen de otra distribución?
+			\end{itemize}
+		\end{block}
+		
+		\vspace{-0.2cm}
+		
+		\begin{columns}[T]
+			\begin{column}{0.48\textwidth}
+				\begin{exampleblock}{Método semiparamétrico}
+					\begin{itemize}
+						\item Generación de datos sintéticos.
+						\item Reajuste de $\hat{x}_{\min}$ y $\hat{\alpha}$.
+						\item \textbf{p-valor:} proporción que el $KS$ de los datos sintéticos supera al empírico.
+					\end{itemize}
+				\end{exampleblock}
+			\end{column}
+			
+			\begin{column}{0.48\textwidth}
+				\begin{alertblock}{Muestreo (Cola)}
+					Generación de la cola:
+					\begin{equation*}
+					P(x) = \sum_{x'=x}^{\infty} p(x') = 1 - r
+					\end{equation*}
+					Aproximación:
+					\begin{equation*}
+					x = \left\lfloor \left(x_{\min} - \frac{1}{2}\right) (1 - r)^{-\frac{1}{\alpha-1}} + \frac{1}{2} \right\rfloor
+					\end{equation*}
+				\end{alertblock}
+			\end{column}
+		\end{columns}
+	\end{frame}
+	
+	%---------------------------------------------------------
+	\begin{frame}{Comparación con hipótesis alternativas (Test de Vuong)}
+		\begin{block}{Razón de log-verosimilitudes ($\mathcal{R}$)}
+			¿Alguna distribución alternativa se ajusta mejor que la ley de potencias?
+			\begin{equation*}
+			\mathcal{R} = \sum_{i=1}^{n} [\ln p_1(x_i) - \ln p_2(x_i)] = \sum_{i=1}^{n} [\ell_i^{(1)} - \ell_i^{(2)}]
+			\end{equation*}
+		\end{block}
+		
+		\begin{columns}[t]
+			\begin{column}{0.5\textwidth}
+				\textbf{Interpretación:}
+				\begin{itemize}
+					\item $\mathcal{R} > 0$: ley de potencias favorable.
+					\item $\mathcal{R} < 0$: alternativa favorable.
+					\item $\mathcal{R} \approx 0$: no distinguibles.
+				\end{itemize}
+			\end{column}
+			
+			\begin{column}{0.5\textwidth}
+				\textbf{Significancia estadística:}
+				\footnotesize
+				\begin{itemize}
+					\item TCL: $\mathcal{R} \sim \mathcal{N}(\mu, \sigma^2)$, con $\sigma^2 \approx \hat{\sigma}^2$
+					\item $H_0$: $\mathcal{R} \sim \mathcal{N}(0, \sigma^2)$
+				\end{itemize}
+				\begin{equation*}
+				p = \frac{1}{\sqrt{2\pi n\sigma^2}} \left[ \int_{-\infty}^{-|\mathcal{R}|} e^{-\frac{t^2}{2n\sigma^2}} dt + \int_{|\mathcal{R}|}^{\infty} e^{-\frac{t^2}{2n\sigma^2}} dt \right]
+				\end{equation*}
+			\end{column}
+		\end{columns}
+	\end{frame}
+	
+	%---------------------------------------------------------
+	\begin{frame}{Ajuste de ley de potencias}
+		\begin{table}
+			\centering
+			\resizebox{0.9\linewidth}{!}{
+				\begin{tabular}{lcc}
+					\hline
+					\textbf{Métrica} & \textbf{Grado de Entrada} & \textbf{Grado de Salida} \\
+					\hline
+					$x_{\min}$ óptimo & 3.0 & 11.0 \\
+					$x_{\min}$ bootstrap & $3.6 \pm 1.4$ & $21.4 \pm 8.9$ \\
+					$\alpha$ óptimo & $1.8999 \pm 0.0222$ & $2.5158 \pm 0.0479$ \\
+					KS óptima & 0.0139 & 0.0608 \\
+					$n_{\text{cola}}$ & 1646 (24.3\%) & 1001 (22.0\%) \\
+					p-valor (Test KS) & \textbf{0.532} & \textbf{0.000} \\
+					\hline
+					Test de Vuong & No rechazada ($p > 0.1$) & Rechazada ($p \le 0.1$) \\
+					\hline
+				\end{tabular}
+			}
+			\caption{Resumen del ajuste para los grados de entrada y salida.}
+		\end{table}
+	\end{frame}
+	
+	%---------------------------------------------------------
+	\begin{frame}{Distribuciones log-log y búsqueda de $x_{\min}$}
+		\begin{figure}
+			\centering
+			\includegraphics[width=\linewidth, height=0.65\textheight, keepaspectratio]{Imagenes/ley_potencias_kmin}
+			\caption{Distribuciones de masa empíricas vs. teóricas y búsqueda de $x_{\min}$.}
+		\end{figure}
+	\end{frame}
+	
+	%---------------------------------------------------------
+	\begin{frame}{Comparación con alternativas}
+		\begin{table}
+			\centering
+			\resizebox{\linewidth}{!}{
+				\begin{tabular}{lrcl}
+					\hline
+					\textbf{Distribución Alternativa} & \textbf{LR ($\mathcal{R}$)} & \textbf{p-valor} & \textbf{Interpretación} \\
+					\hline
+					\multicolumn{4}{c}{\textbf{Grado de Entrada} \quad ($k_{\min}=3, \alpha=1.900, p_{\text{KS}}=0.532$)} \\
+					\hline
+					Exponencial & $8.432$ & $<0.001$ & Ley de potencias favorable \\
+					Poisson     & $5.401$ & $<0.001$ & Ley de potencias favorable \\
+					Yule        & $-1.598$ & $0.110$ & No distinguibles \\
+					\hline
+					\multicolumn{4}{c}{\textbf{Grado de Salida} \quad ($k_{\min}=11, \alpha=2.516, p_{\text{KS}}<0.001$)} \\
+					\hline
+					Exponencial & $1.307$ & $0.191$ & No distinguibles \\
+					Poisson     & $3.824$ & $<0.001$ & Ley de potencias favorable \\
+					Yule        & $-8.943$ & $<0.001$ & Alternativa favorable \\
+					\hline
+				\end{tabular}
+			}
+			\caption{Tests de razón de verosimilitud frente a distribuciones alternativas.}
+		\end{table}
+	\end{frame}
+\end{document}

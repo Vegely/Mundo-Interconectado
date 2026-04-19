@@ -1,0 +1,10 @@
+\frametitle{Representación en el Espacio de Estados}
+En control moderno, se evita trabajar con ecuaciones diferenciales de orden $n$ acopladas. Se define un \textbf{Vector de Estados} $X \in \mathbb{R}^4$:
+^^I
+^^I\[
+^^IX = \begin{bmatrix} \theta \\ \alpha \\ \dot{\theta} \\ \dot{\alpha} \end{bmatrix} = \begin{bmatrix} x_1 \\ x_2 \\ x_3 \\ x_4 \end{bmatrix} \implies \dot{X} = F(X, U) = \begin{bmatrix} x_3 \\ x_4 \\ f_{\ddot{\theta}}(X, U) \\ f_{\ddot{\alpha}}(X, U) \end{bmatrix}
+^^I\]
+^^I
+^^I
+^^I\vspace{0.2cm}
+^^IEl objetivo final es encontrar la acción de control $U(X)$ que garantice $\lim_{t \to \infty} X(t) = \mathbf{0}$.
