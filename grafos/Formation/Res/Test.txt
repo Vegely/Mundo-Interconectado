@@ -1,0 +1,46 @@
+[+] Plotting 32-Panel Master Grid...
+[+] Saved final_8model_master_grid.png!
+
+[+] Plotting Individual 6-Panel Summaries...
+[+] All done!
+PS C:\Users\bogurad\Desktop\ProyectosgitHub\Mundo-Interconectado\grafos\Formation\NewUntested> python .\test_models.py
+[+] Loading real graph...
+[+] Loading optimized parameters...
+
+[+] Running parallel validation (300 samples per model)...
+ER (Null)     : 100%|████████████████████████████████████████████████████████████████| 300/300 [00:04<00:00, 66.51it/s]
+BA (Null)     : 100%|████████████████████████████████████████████████████████████████| 300/300 [00:04<00:00, 68.48it/s]
+Bianconi_BB   : 100%|████████████████████████████████████████████████████████████████| 300/300 [00:25<00:00, 11.92it/s]
+Copying       : 100%|████████████████████████████████████████████████████████████████| 300/300 [00:10<00:00, 29.44it/s]
+SBM_PA        : 100%|████████████████████████████████████████████████████████████████| 300/300 [01:47<00:00,  2.78it/s]
+ERGM          : 100%|████████████████████████████████████████████████████████████████| 300/300 [01:54<00:00,  2.62it/s]
+BTER          : 100%|████████████████████████████████████████████████████████████████| 300/300 [00:07<00:00, 42.17it/s]
+Kronecker     : 100%|████████████████████████████████████████████████████████████████| 300/300 [00:04<00:00, 68.84it/s]
+
+[+] Valid samples per model:
+    ER (Null)      300/300
+    BA (Null)      300/300
+    Bianconi_BB    300/300
+    Copying        300/300
+    SBM_PA         300/300
+    ERGM           300/300
+    BTER           300/300
+    Kronecker      300/300
+
+[+] Final P-Value Results (Using Intuitive Mechanics Metrics):
+-------------------------------------------------------------------------------------
+ ER (Null)      | Clust: 0.013* | Max Hub: 0.013* | Assort: 0.007* | Recip: 0.013*
+ BA (Null)      | Clust: 0.013* | Max Hub: 0.199  | Assort: 0.007* | Recip: 0.013*
+ Bianconi_BB    | Clust: 0.013* | Max Hub: 0.053  | Assort: 0.007* | Recip: 0.013*
+ Copying        | Clust: 0.013* | Max Hub: 0.252  | Assort: 0.007* | Recip: 0.013*
+ SBM_PA         | Clust: 0.013* | Max Hub: 0.013* | Assort: 0.007* | Recip: 0.007*
+ ERGM           | Clust: 0.013* | Max Hub: 0.013* | Assort: 0.007* | Recip: 0.013*
+ BTER           | Clust: 0.007* | Max Hub: 0.013* | Assort: 0.007* | Recip: 0.007*
+ Kronecker      | Clust: 0.013* | Max Hub: 0.013* | Assort: 0.007* | Recip: 0.013*
+
+[+] Plotting 32-Panel Master Grid...
+[+] Saved final_8model_master_grid.png!
+
+[+] Plotting Individual 6-Panel Summaries...
+[+] All done!
+PS C:\Users\bogurad\Desktop\ProyectosgitHub\Mundo-Interconectado\grafos\Formation\NewUntested>
