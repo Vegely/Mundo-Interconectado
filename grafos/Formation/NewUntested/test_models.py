@@ -88,7 +88,7 @@ def _build_graph(m_name, params, n_real, m_real):
                             params["m1"], params["m2"])
 
     elif m_name == "ERGM":
-        return ergm_model(n_real, m_real, params["theta_mut"], params["theta_star"])
+        return ergm_model(n_real, m_real, params["theta_mut"], params["theta_out"], params["theta_in"], params["theta_tri"])
 
     elif m_name == "BTER":
         return bter_model(n_real, m_real, params["alpha"], params["density"])

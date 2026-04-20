@@ -1,5 +1,5 @@
 """
-train.py
+train.py  (v2 — distribution-aware loss)
 ======================================================
 Optimizes parameters for BA, Bianconi-Barabasi, and 5 theoretical models.
 Uses Optuna (Bayesian Optimization) with a correct parallelization strategy:
@@ -14,13 +14,71 @@ Uses Optuna (Bayesian Optimization) with a correct parallelization strategy:
 Progress display strategy:
   Workers NEVER write to stdout — they only put (model_idx, trial, best_loss) onto
   a shared Manager Queue. The main process owns all 7 tqdm bars (one per position)
-  and is the only process that refreshes them. This eliminates the jumping/collision
-  problem on Windows where spawned processes have independent stdout buffers.
+  and is the only process that refreshes them.
 
 PyPI degree distribution (Tabla 2.1):
   In-degree  : power law NOT rejected (KS p=0.532)  α=1.8999, x_min=3,  n_tail=1646 (24.3%)
   Out-degree : power law REJECTED     (KS p=0.000)  α=2.5158, x_min=11, n_tail=1001 (22.0%)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ LOSS FUNCTION v2 — WHY THE OLD ONE FAILED AND HOW WE FIX IT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ OLD LOSS  (NMSE on 4 scalars):
+   denom = np.where(real_stats != 0, real_stats, 1.0)
+   loss  = sum(((avg_stats - real_stats) / denom) ** 2)
+
+ Bug 1 — TINY DENOMINATOR (reciprocity poisoning):
+   PyPI reciprocity ≈ 0.01.  A prediction of 0.05 gives error
+   ((0.05 - 0.01) / 0.01)^2 = 16.0, while a completely wrong
+   out-degree entropy gives only ≈ 0.22.  The optimizer sacrifices
+   the entire network structure just to nail the tiny reciprocity.
+
+ Bug 2 — ENTROPY COMPRESSION:
+   Reducing the full power-law degree distribution to a single
+   Shannon entropy scalar hides the heavy tail completely.
+   Two distributions with the same entropy can look completely
+   different (one uniform, one highly skewed).
+
+ NEW LOSS (distribution-aware, weighted absolute):
+
+   [A] Wasserstein-1 distance on raw in/out degree sequences.
+       Forces the optimizer to match the full distribution shape
+       including the power-law tail, not a compressed scalar.
+       ─ Rubner, Tomasi & Guibas (2000). "The Earth Mover's Distance
+         as a Metric for Image Retrieval." IJCV 40(2):99–121.
+       ─ You, Ying, Ren, Hamilton & Leskovec (2018). "GraphRNN:
+         Generating Realistic Graphs with Deep Auto-regressive Models."
+         ICML 2018 (arXiv:1802.08773). Uses degree/clustering/orbit
+         distribution distances as the standard graph-evaluation protocol.
+
+   [B] KS-statistic on in/out degree distributions (logged only).
+       The KS statistic measures the maximum CDF deviation, making
+       it especially sensitive to tail mismatches in power-law nets.
+       ─ Clauset, Shalizi & Newman (2009). "Power-Law Distributions
+         in Empirical Data." SIAM Review 51(4):661–703.
+         (Standard test used to confirm power-law degree fits.)
+
+   [C] Absolute difference (not relative) for scalar stats.
+       Eliminates the 1/0.01 amplification that breaks optimization
+       for low-reciprocity networks like PyPI.
+       ─ Leskovec, Chakrabarti, Kleinberg, Faloutsos & Ghahramani
+         (2010). "Kronecker Graphs: An Approach to Modeling Networks."
+         JMLR 11:985–1042.  Uses absolute differences of graph
+         statistics as the primary goodness-of-fit measure.
+
+   Weighted loss:
+     L = w_in  · W₁(in_deg_synth,  in_deg_real)
+       + w_out · W₁(out_deg_synth, out_deg_real)
+       + w_c   · |clust_synth  - clust_real|
+       + w_r   · |recip_synth  - recip_real|
+
+   Wasserstein distances for PyPI O(10k) sequences typically sit in
+   [0.5, 15].  |clust| and |recip| live in [0, 1].  We scale the
+   scalar metrics by ×10 so they contribute equally to the landscape.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
+
 import time
 import warnings
 import json
@@ -29,6 +87,7 @@ import numpy as np
 import igraph as ig
 import optuna
 from optuna.samplers import CmaEsSampler, TPESampler, QMCSampler, BaseSampler
+from scipy.stats import wasserstein_distance, ks_2samp
 from tqdm import tqdm
 
 optuna.logging.set_verbosity(optuna.logging.WARNING)
@@ -61,7 +120,7 @@ SEED_TRIALS = {
     "Bianconi_BB": {"m": 5},
     "Copying":     {"beta": 0.65, "m_init": 5},
     "SBM_PA":      {"k": 20, "alpha": ALPHA_IN, "m1": 3, "m2": 5},
-    "ERGM":        {"theta_mut": 2.0, "theta_star": 1.0},
+    "ERGM":        {"theta_mut": 2.0, "theta_out": 1.0, "theta_in": 1.0, "theta_tri": 0.0},
     "BTER":        {"alpha": ALPHA_IN, "density": 0.25},
     "Kronecker":   {"a": 0.72, "b": 0.18, "c": 0.18},
 }
@@ -72,6 +131,19 @@ EVAL_SCHEDULE = {
     "late":  {"threshold": 1.00, "n_graphs": 8},
 }
 
+# ── Loss weights ──────────────────────────────────────────────────────────────
+# Wasserstein distances on PyPI degree seqs are typically in [0.5, 15].
+# Clustering and reciprocity live in [0, 1], so we multiply them by 10
+# to ensure they contribute equally rather than being swamped by the
+# degree-distribution terms.
+# Ref: You et al. (2018) arXiv:1802.08773 use equal-weight multi-stat evaluation.
+LOSS_WEIGHTS = {
+    "in_wasserstein":  1.0,   # W₁ on in-degree sequences
+    "out_wasserstein": 1.0,   # W₁ on out-degree sequences
+    "clustering":     10.0,   # |clust_synth - clust_real|  ×10 to balance scale
+    "reciprocity":    10.0,   # |recip_synth - recip_real|  ×10 to balance scale
+}
+
 def _graphs_for_trial(trial_number: int, n_trials: int) -> int:
     frac = trial_number / n_trials
     for stage in EVAL_SCHEDULE.values():
@@ -80,22 +152,122 @@ def _graphs_for_trial(trial_number: int, n_trials: int) -> int:
     return EVAL_SCHEDULE["late"]["n_graphs"]
 
 # ── Statistics ───────────────────────────────────────────────────────────────
-def compute_stats(g: ig.Graph) -> np.ndarray:
-    clust   = g.as_undirected(combine_edges="first").transitivity_undirected(mode="zero")
-    in_deg  = np.array(g.indegree())
-    out_deg = np.array(g.outdegree())
-    in_c    = np.bincount(in_deg)
-    out_c   = np.bincount(out_deg)
-    in_p    = in_c[in_c > 0] / len(in_deg)
-    out_p   = out_c[out_c > 0] / len(out_deg)
-    in_ent  = float(-np.sum(in_p  * np.log2(in_p)))
-    out_ent = float(-np.sum(out_p * np.log2(out_p)))
-    recip   = g.reciprocity()
-    return np.array([clust, in_ent, out_ent, recip])
+def compute_graph_fingerprint(g: ig.Graph) -> dict:
+    """
+    Return a rich fingerprint of g:
+      - raw in/out degree arrays (for Wasserstein + KS comparison)
+      - global clustering coefficient
+      - reciprocity
+
+    The degree arrays are kept raw (not histogrammed, not entropy-compressed)
+    so that wasserstein_distance() can compare the full distributional shape
+    including the power-law tail.
+
+    Ref: You et al. (2018) ICML — degree/clustering/orbit *distributions*
+         (not scalars) are the gold-standard evaluation protocol for
+         generative graph models.
+    """
+    in_deg  = np.array(g.indegree(),  dtype=np.float64)
+    out_deg = np.array(g.outdegree(), dtype=np.float64)
+    clust   = float(
+        g.as_undirected(combine_edges="first").transitivity_undirected(mode="zero")
+    )
+    recip   = float(g.reciprocity())
+    return {"in_deg": in_deg, "out_deg": out_deg, "clust": clust, "recip": recip}
+
+
+def compute_loss_from_fingerprints(fp_list: list, real_fp: dict) -> tuple[float, list]:
+    """
+    Compute a weighted composite loss between a list of synthetic graph
+    fingerprints and the real graph fingerprint.
+
+    Components
+    ----------
+    [A] Wasserstein-1 distance on in/out degree sequences.
+        Measures how much "work" it takes to transform the synthetic degree
+        distribution into the real one — sensitive to the heavy power-law tail.
+        ─ Rubner, Tomasi & Guibas (2000). IJCV 40(2):99–121.
+        ─ You et al. (2018). GraphRNN. ICML. arXiv:1802.08773.
+
+    [B] KS statistic on degree sequences (stored as user_attr, NOT in loss).
+        Maximum CDF deviation; particularly sensitive to tail mismatches.
+        ─ Clauset, Shalizi & Newman (2009). SIAM Review 51(4):661–703.
+
+    [C] |clustering_synth - clustering_real|  (absolute, not relative).
+        Avoids dividing by a small denominator.
+        ─ Leskovec et al. (2010). Kronecker Graphs. JMLR 11:985–1042.
+
+    [D] |reciprocity_synth - reciprocity_real|  (absolute, not relative).
+        PyPI reciprocity ≈ 0.01; dividing by it (old code) blew the gradient
+        up by 100× and made the optimizer fixate on reciprocity alone.
+        ─ Leskovec et al. (2010). JMLR 11:985–1042.
+
+    Returns
+    -------
+    loss  : scalar weighted sum (lower = better)
+    stats : [in_wass, out_wass, clust_diff, recip_diff, ks_in, ks_out]
+            for logging / JSON output
+    """
+    w = LOSS_WEIGHTS
+
+    in_wass_list,  out_wass_list  = [], []
+    clust_diff_list, recip_diff_list = [], []
+    ks_in_list,    ks_out_list    = [], []
+
+    for fp in fp_list:
+        # ── [A] Wasserstein-1 on raw degree sequences ──────────────────────
+        in_wass  = wasserstein_distance(fp["in_deg"],  real_fp["in_deg"])
+        out_wass = wasserstein_distance(fp["out_deg"], real_fp["out_deg"])
+
+        # ── [B] KS statistic (diagnostic only — NOT added to loss) ─────────
+        ks_in,  _ = ks_2samp(fp["in_deg"],  real_fp["in_deg"])
+        ks_out, _ = ks_2samp(fp["out_deg"], real_fp["out_deg"])
+
+        # ── [C/D] Absolute scalar differences ──────────────────────────────
+        clust_diff = abs(fp["clust"] - real_fp["clust"])
+        recip_diff = abs(fp["recip"] - real_fp["recip"])
+
+        in_wass_list.append(in_wass);   out_wass_list.append(out_wass)
+        clust_diff_list.append(clust_diff); recip_diff_list.append(recip_diff)
+        ks_in_list.append(ks_in);       ks_out_list.append(ks_out)
+
+    avg_in_wass   = float(np.mean(in_wass_list))
+    avg_out_wass  = float(np.mean(out_wass_list))
+    avg_clust     = float(np.mean(clust_diff_list))
+    avg_recip     = float(np.mean(recip_diff_list))
+    avg_ks_in     = float(np.mean(ks_in_list))
+    avg_ks_out    = float(np.mean(ks_out_list))
+
+    loss = (
+        w["in_wasserstein"]  * avg_in_wass  +
+        w["out_wasserstein"] * avg_out_wass +
+        w["clustering"]      * avg_clust    +
+        w["reciprocity"]     * avg_recip
+    )
+
+    stats = [avg_in_wass, avg_out_wass, avg_clust, avg_recip, avg_ks_in, avg_ks_out]
+    return float(loss), stats
+
 
 # ── Core evaluation ──────────────────────────────────────────────────────────
-def evaluate_params(m_name, params, n_real, m_real, real_stats, n_graphs=5):
-    synth_results = []
+def evaluate_params(m_name, params, n_real, m_real,
+                    real_in_deg, real_out_deg, real_clust, real_recip,
+                    n_graphs=5):
+    """
+    Generate n_graphs synthetic graphs and compute the composite loss.
+
+    real_in_deg / real_out_deg are passed as numpy arrays so that
+    wasserstein_distance() can compare sequences directly — no entropy
+    compression, no histogram binning choice.
+    """
+    real_fp = {
+        "in_deg":  real_in_deg,
+        "out_deg": real_out_deg,
+        "clust":   real_clust,
+        "recip":   real_recip,
+    }
+
+    fp_list = []
     for _ in range(n_graphs):
         try:
             if m_name == "BA":
@@ -108,25 +280,25 @@ def evaluate_params(m_name, params, n_real, m_real, real_stats, n_graphs=5):
                 g = sbm_pa_model(n_real, params["k"], params["alpha"],
                                  params["m1"], params["m2"])
             elif m_name == "ERGM":
-                g = ergm_model(n_real, m_real, params["theta_mut"], params["theta_star"])
+                g = ergm_model(n_real, m_real, params["theta_mut"], params["theta_out"], params["theta_in"], params["theta_tri"])
             elif m_name == "BTER":
                 g = bter_model(n_real, m_real, params["alpha"], params["density"])
             elif m_name == "Kronecker":
                 g = kronecker_model(n_real, m_real, params["a"], params["b"], params["c"])
 
-            stats = compute_stats(g)
-            if not np.any(np.isnan(stats)):
-                synth_results.append(stats)
+            fp = compute_graph_fingerprint(g)
+            # Guard against degenerate graphs (all-zero degrees, NaN clust, etc.)
+            if (fp["in_deg"].sum() > 0 and fp["out_deg"].sum() > 0
+                    and not np.isnan(fp["clust"]) and not np.isnan(fp["recip"])):
+                fp_list.append(fp)
         except Exception:
             pass
 
-    if not synth_results:
+    if not fp_list:
         return float("inf"), []
 
-    avg_stats = np.mean(synth_results, axis=0)
-    denom = np.where(real_stats != 0, real_stats, 1.0)
-    loss  = float(np.sum(((avg_stats - real_stats) / denom) ** 2))
-    return loss, avg_stats.tolist()
+    return compute_loss_from_fingerprints(fp_list, real_fp)
+
 
 # ── Per-model sampler selection ───────────────────────────────────────────────
 def _make_sampler(m_name: str, warmup: int) -> BaseSampler:
@@ -138,13 +310,19 @@ def _make_sampler(m_name: str, warmup: int) -> BaseSampler:
     return QMCSampler(qmc_type="sobol", scramble=True, seed=42,
                       independent_sampler=inner)
 
-# ── Worker: NO tqdm, NO print — only queue puts ───────────────────────────────
+
+# ── Worker ────────────────────────────────────────────────────────────────────
 # Queue message format:
 #   progress update : (model_idx, m_name, trial_number, best_loss_so_far)
 #   done sentinel   : (model_idx, m_name, None, final_loss)
 def optimize_model(args):
-    m_name, model_idx, n_real, m_real, real_stats_list, n_trials, warmup, q = args
-    real_stats = np.array(real_stats_list)
+    (m_name, model_idx, n_real, m_real,
+     real_in_list, real_out_list, real_clust, real_recip,
+     n_trials, warmup, q) = args
+
+    # Reconstruct numpy arrays from the serialised lists
+    real_in_deg  = np.array(real_in_list,  dtype=np.float64)
+    real_out_deg = np.array(real_out_list, dtype=np.float64)
 
     sampler = _make_sampler(m_name, warmup)
     study   = optuna.create_study(direction="minimize", sampler=sampler)
@@ -176,11 +354,10 @@ def optimize_model(args):
             }
         elif m_name == "ERGM":
             params = {
-                # theta_mut: mutual-dyad param; paper Table 2 shows ~1.7-2.2
-                # theta_star: GWD out-degree, alpha=ln(2); Table 2 range -8 to +1.
-                # Use LINEAR scale (not log) -- param is signed and O(1).
                 "theta_mut":  trial.suggest_float("theta_mut",  -1.0, 5.0),
-                "theta_star": trial.suggest_float("theta_star", -5.0, 3.0),
+                "theta_out":  trial.suggest_float("theta_out", -5.0, 3.0),
+                "theta_in":   trial.suggest_float("theta_in",  -5.0, 3.0),
+                "theta_tri":  trial.suggest_float("theta_tri", -1.0, 3.0),
             }
         elif m_name == "BTER":
             params = {
@@ -195,14 +372,18 @@ def optimize_model(args):
             }
 
         n_graphs = _graphs_for_trial(trial.number, n_trials)
-        loss, stats = evaluate_params(m_name, params, n_real, m_real,
-                                      real_stats, n_graphs)
+        loss, stats = evaluate_params(
+            m_name, params, n_real, m_real,
+            real_in_deg, real_out_deg, real_clust, real_recip,
+            n_graphs,
+        )
 
         if loss == float("inf"):
-            # Notify main so bar still advances on pruned trials
             q.put((model_idx, m_name, trial.number, best_loss_seen))
             raise optuna.TrialPruned()
 
+        # Store full stat vector for the best-trial JSON entry:
+        # [in_wass, out_wass, clust_diff, recip_diff, ks_in, ks_out]
         trial.set_user_attr("stats",    stats)
         trial.set_user_attr("n_graphs", n_graphs)
 
@@ -210,8 +391,6 @@ def optimize_model(args):
             best_loss_seen = loss
 
         loss_history.append((trial.number, best_loss_seen))
-
-        # Only output: send progress to main process via queue
         q.put((model_idx, m_name, trial.number, best_loss_seen))
         return loss
 
@@ -224,12 +403,9 @@ def optimize_model(args):
     except ValueError:
         best_loss, best_params, best_stats = float("inf"), {}, []
 
-    # Done sentinel: trial_number=None tells the main loop this worker finished
     q.put((model_idx, m_name, None, best_loss))
-
-    result = {"model": m_name, "params": best_params,
-              "loss": best_loss, "stats": best_stats}
-    return m_name, result, loss_history
+    return m_name, {"model": m_name, "params": best_params,
+                    "loss": best_loss, "stats": best_stats}, loss_history
 
 
 # ── Plot convergence curves ───────────────────────────────────────────────────
@@ -271,7 +447,7 @@ def plot_convergence(all_histories: dict, output_path: str = "training_progress.
     ax_abs.set_yscale("log")
     ax_abs.set_title("Best Loss (log scale)")
     ax_abs.set_xlabel("Trial")
-    ax_abs.set_ylabel("Loss")
+    ax_abs.set_ylabel("Loss  [W₁(in)+W₁(out)+10·|clust|+10·|recip|]")
     ax_abs.yaxis.set_major_formatter(mticker.LogFormatterSciNotation())
     ax_abs.legend(fontsize=8, framealpha=0.2, labelcolor="white",
                   facecolor="#0D1117", edgecolor="#30363D")
@@ -298,7 +474,7 @@ def print_results_table(best_results: dict):
               f"+{'-'*(col_w['loss']+2)}+{'-'*(col_w['params']+2)}+")
 
     print("\n" + "=" * 65)
-    print("  Final Results  (ranked by loss)")
+    print("  Final Results  (ranked by composite Wasserstein+|Δclust|+|Δrecip| loss)")
     print("=" * 65)
     print(sep)
     print(f"  | {'#':<{col_w['rank']}} | {'Model':<{col_w['model']}} "
@@ -312,16 +488,23 @@ def print_results_table(best_results: dict):
         print(f"  | {rank:<{col_w['rank']}} | {m_name:<{col_w['model']}} "
               f"| {loss_str:<{col_w['loss']}} | {params_str:<{col_w['params']}} |")
     print(sep)
+    print("\n  Stats columns: [W₁_in, W₁_out, |Δclust|, |Δrecip|, KS_in, KS_out]")
+    for m_name, r in ranked:
+        if r["stats"]:
+            labels = ["W1_in", "W1_out", "|Δclust|", "|Δrecip|", "KS_in", "KS_out"]
+            vals   = "  ".join(f"{l}={v:.4f}" for l, v in zip(labels, r["stats"]))
+            print(f"  {m_name:<14}: {vals}")
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 def main():
     print("=" * 65)
-    print("  PyPI Network: 7-Model Parallel Bayesian Optimizer")
+    print("  PyPI Network: 7-Model Parallel Bayesian Optimizer  [v2]")
+    print("  Loss: W₁(in/out-deg) + 10·|Δclust| + 10·|Δrecip|")
     print("=" * 65)
     print(f"  Priors: α_in={ALPHA_IN} (p=0.532, not rejected) | "
           f"α_out={ALPHA_OUT} (p=0.000, rejected)")
-    print(f"  Alpha search range tightened to [{ALPHA_LO}, {ALPHA_HI}]")
+    print(f"  Alpha search range: [{ALPHA_LO}, {ALPHA_HI}]")
 
     try:
         real_g = ig.Graph.Read_GraphML(GRAPH_FILE)
@@ -331,28 +514,36 @@ def main():
         print(f"Failed to load {GRAPH_FILE}: {e}")
         return
 
-    n_real, m_real  = real_g.vcount(), real_g.ecount()
-    real_stats      = compute_stats(real_g)
-    real_stats_list = real_stats.tolist()
+    n_real = real_g.vcount()
+    m_real = real_g.ecount()
+
+    # Compute real graph fingerprint once; pass degree arrays to workers.
+    # Keeping raw arrays avoids entropy compression and lets each worker
+    # call wasserstein_distance() directly.
+    # Ref: You et al. (2018) arXiv:1802.08773 — distribution-level evaluation.
+    real_fp       = compute_graph_fingerprint(real_g)
+    real_in_list  = real_fp["in_deg"].tolist()
+    real_out_list = real_fp["out_deg"].tolist()
+    real_clust    = real_fp["clust"]
+    real_recip    = real_fp["recip"]
 
     avg_deg = m_real / n_real
     print(f"[+] Loaded PyPI: {n_real} nodes, {m_real} edges | avg degree {avg_deg:.1f}")
+    print(f"[+] Real stats: clust={real_clust:.4f}  recip={real_recip:.4f}")
     print(f"[+] {TRIALS_PER_MODEL} trials/model | {WARMUP_TRIALS} QMC warm-up | "
           f"adaptive eval budget | empirical seed trials")
     print(f"[+] Running all 7 models in parallel — progress bars below:\n")
 
-    # ── Shared queue: workers → main ──────────────────────────────────────────
     manager = multiprocessing.Manager()
     q       = manager.Queue()
 
     tasks = [
-        (m_name, idx, n_real, m_real, real_stats_list, TRIALS_PER_MODEL, WARMUP_TRIALS, q)
+        (m_name, idx, n_real, m_real,
+         real_in_list, real_out_list, real_clust, real_recip,
+         TRIALS_PER_MODEL, WARMUP_TRIALS, q)
         for idx, m_name in enumerate(MODEL_NAMES)
     ]
 
-    # ── Create all 7 bars HERE in the main process ────────────────────────────
-    # position=i pins each bar to a fixed terminal row.
-    # Workers never touch these — only this process calls .refresh().
     bars = [
         tqdm(
             total=TRIALS_PER_MODEL,
@@ -371,7 +562,6 @@ def main():
     with multiprocessing.Pool(processes=n_workers) as pool:
         async_result = pool.map_async(optimize_model, tasks)
 
-        # ── Event loop: drain queue and refresh bars until all workers done ───
         while done_count < len(MODEL_NAMES):
             while not q.empty():
                 try:
@@ -382,7 +572,6 @@ def main():
                 bar = bars[model_idx]
 
                 if trial_num is None:
-                    # Sentinel — this model is done
                     bar.n = TRIALS_PER_MODEL
                     loss_str = f"{best_loss:.4f}" if best_loss != float("inf") else "∞"
                     bar.set_postfix({"best": loss_str, "done": "✓"})
@@ -394,7 +583,7 @@ def main():
                         bar.set_postfix({"best": f"{best_loss:.4f}"})
                     bar.refresh()
 
-            time.sleep(0.05)  # 50 ms poll — negligible CPU, responsive display
+            time.sleep(0.05)
 
     for bar in bars:
         bar.close()

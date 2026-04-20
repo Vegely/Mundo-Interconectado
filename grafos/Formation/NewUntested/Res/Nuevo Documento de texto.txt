@@ -1,0 +1,4 @@
+Component Paper Why
+Wasserstein-1 on raw in/out degree sequencesRubner et al. (2000) IJCV; You et al. (2018) GraphRNN ICMLForces the optimizer to match the full distributional shape including the heavy tail
+KS statistic (logged, not in loss)Clauset, Shalizi & Newman (2009) SIAM ReviewSensitive to tail mismatches; useful diagnostic in the output JSON
+Absolute difference for clustering & reciprocityLeskovec et al. (2010) Kronecker Graphs JMLREliminates the 1/0.01 amplification entirely
