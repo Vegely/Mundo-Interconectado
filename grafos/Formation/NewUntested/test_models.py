@@ -4,15 +4,24 @@ test_models.py
 Validates 8 Models. Models are imported from the compiled Cython extensions.
 Computes p-values, generates an individual 6-panel PNG for each model,
 and a master 32-panel grid.
+
+Changes vs original:
+  - Added tqdm progress bars pinned by position (same as train.py).
+  - Switched to multiprocessing.Pool and a Manager Queue for IPC progress tracking.
+  - worker_run returns None for degenerate/NaN graphs instead of crashing.
+  - Main collection loop filters None results; prints per-model valid-sample count.
+  - BTER call fixed: bter_model(n, m_real, alpha, density) — 4 args only.
+  - compute_stats NaN guard added (consistent with train.py).
 """
 import json
+import time
 import warnings
 import multiprocessing
-import concurrent.futures
 import numpy as np
 import igraph as ig
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+from tqdm import tqdm
 
 from bb_model import bianconi_barabasi_model
 from copying_model import copying_model
@@ -25,7 +34,7 @@ warnings.filterwarnings("ignore")
 
 GRAPH_FILE  = "pypi_multiseed_10k.graphml"
 INPUT_FILE  = "best_parameters.json"
-N_MC        = 200   # Monte Carlo samples per model
+N_MC        = 300   # Monte Carlo samples per model
 ALPHA       = 0.05
 
 STAT_NAMES  = ["Clustering", "In-Entropy", "Out-Entropy", "Reciprocity"]
@@ -69,41 +78,49 @@ def _build_graph(m_name, params, n_real, m_real):
         return ig.Graph.Barabasi(n=n_real, m=params["m"], directed=True)
 
     elif m_name == "Bianconi_BB":
-        # bianconi_barabasi_model(n, m_real, m)
         return bianconi_barabasi_model(n_real, m_real, params["m"])
 
     elif m_name == "Copying":
-        # copying_model(n, m_real, beta, m_init)
         return copying_model(n_real, m_real, params["beta"], params["m_init"])
 
     elif m_name == "SBM_PA":
-        # sbm_pa_model(n, k, alpha, m1, m2)
-        # Returns a directed graph directly — do NOT call as_directed().
-        g = sbm_pa_model(n_real,
-                         params["k"],
-                         params["alpha"],
-                         params["m1"],
-                         params["m2"])
-        return g
+        return sbm_pa_model(n_real, params["k"], params["alpha"],
+                            params["m1"], params["m2"])
 
     elif m_name == "ERGM":
-        # ergm_model(n, m_real, theta_mut, theta_star)
         return ergm_model(n_real, m_real, params["theta_mut"], params["theta_star"])
 
     elif m_name == "BTER":
-        # bter_model(n, m_real, alpha, block_density)
         return bter_model(n_real, m_real, params["alpha"], params["density"])
 
     else:  # Kronecker
-        # kronecker_model(n, m_real, a, b, c)
         return kronecker_model(n_real, m_real, params["a"], params["b"], params["c"])
 
 
 def worker_run(args):
-    m_name, params, seed, n_real, m_real = args
+    """
+    Build one synthetic graph and return its stats.
+    Returns (m_name, stats) on success, or (m_name, None) on failure.
+    Puts the model_idx into the queue to update the progress bar.
+    """
+    m_name, model_idx, params, seed, n_real, m_real, q = args
     np.random.seed(seed)
-    g = _build_graph(m_name, params, n_real, m_real)
-    return m_name, compute_stats(g)
+    
+    try:
+        g     = _build_graph(m_name, params, n_real, m_real)
+        stats = compute_stats(g)
+        if np.any(np.isnan(stats)):
+            result = (m_name, None)
+        else:
+            result = (m_name, stats)
+    except Exception:
+        result = (m_name, None)
+
+    # Notify main process that one MC sample for this model is done
+    if q is not None:
+        q.put(model_idx)
+
+    return result
 
 
 def get_ccdf(degrees):
@@ -124,9 +141,8 @@ def main():
         print(f"Error: '{INPUT_FILE}' not found. Run train.py first.")
         return
 
-    # Inject null models without mutating the original keys destructively
+    # Inject null models
     best_configs["ER (Null)"] = {"params": {}}
-    # Rename BA -> BA (Null) only if the key exists and BA (Null) is not already present
     if "BA" in best_configs and "BA (Null)" not in best_configs:
         best_configs["BA (Null)"] = best_configs.pop("BA")
 
@@ -136,29 +152,85 @@ def main():
     n_real, m_real = real_g.vcount(), real_g.ecount()
     real_stats = compute_stats(real_g)
 
+    # Shared queue for progress bar updates
+    manager = multiprocessing.Manager()
+    q = manager.Queue()
+
     tasks = [
-        (m_name, best_configs[m_name]["params"], 1000 + i, n_real, m_real)
-        for m_name in MODEL_ORDER
+        (m_name, idx, best_configs[m_name]["params"], 1000 + i, n_real, m_real, q)
+        for idx, m_name in enumerate(MODEL_ORDER)
         for i in range(N_MC)
     ]
     results = {m: [] for m in MODEL_ORDER}
 
-    print(f"[+] Running parallel validation ({N_MC} samples per model)...")
-    with concurrent.futures.ProcessPoolExecutor(
-            max_workers=multiprocessing.cpu_count()) as executor:
-        for m_name, stat_arr in executor.map(worker_run, tasks):
+    print(f"\n[+] Running parallel validation ({N_MC} samples per model)...\n")
+
+    # Create 8 fixed-position progress bars in the main thread
+    bars = [
+        tqdm(
+            total=N_MC,
+            desc=f"{name:<15}",
+            position=i,
+            leave=True,
+            dynamic_ncols=True
+        )
+        for i, name in enumerate(MODEL_ORDER)
+    ]
+
+    n_workers = multiprocessing.cpu_count()
+    with multiprocessing.Pool(processes=n_workers) as pool:
+        async_result = pool.map_async(worker_run, tasks)
+
+        # Event loop: drain queue and refresh bars until all tasks complete
+        completed = 0
+        total_tasks = len(tasks)
+        
+        while completed < total_tasks:
+            while not q.empty():
+                try:
+                    m_idx = q.get_nowait()
+                    bars[m_idx].update(1)
+                    bars[m_idx].refresh()
+                    completed += 1
+                except Exception:
+                    break
+            time.sleep(0.05)  # 50ms poll
+
+    for bar in bars:
+        bar.close()
+
+    # Collect the results
+    raw_results = async_result.get()
+    for m_name, stat_arr in raw_results:
+        if stat_arr is not None:
             results[m_name].append(stat_arr)
 
-    for k in results:
-        results[k] = np.array(results[k])
+    # Report valid sample counts
+    print("\n\n[+] Valid samples per model:")
+    for m_name in MODEL_ORDER:
+        n_valid = len(results[m_name])
+        flag = "" if n_valid == N_MC else f"  ⚠ only {n_valid}/{N_MC} valid"
+        print(f"    {m_name:<15} {n_valid:>3}/{N_MC}{flag}")
+        results[m_name] = np.array(results[m_name])
+
+    # Guard: skip any model with too few samples to compute p-values
+    MIN_SAMPLES = 20
+    runnable = [m for m in MODEL_ORDER if len(results[m]) >= MIN_SAMPLES]
 
     # ── P-value table ─────────────────────────────────────────────────────────
     print("\n[+] Final P-Value Results:")
     print("-" * 75)
     for m_name in MODEL_ORDER:
+        if m_name not in runnable:
+            print(f" {m_name:<15} | *** insufficient samples — skipped ***")
+            continue
         ps = [two_sided_pval(results[m_name][:, i], real_stats[i]) for i in range(4)]
-        print(f" {m_name:<15} | Clust: {ps[0]:.3f} | In-Ent: {ps[1]:.3f} "
-              f"| Out-Ent: {ps[2]:.3f} | Recip: {ps[3]:.3f}")
+        sig = lambda p: "*" if p < ALPHA else " "
+        print(f" {m_name:<15} | Clust: {ps[0]:.3f}{sig(ps[0])} | "
+              f"In-Ent: {ps[1]:.3f}{sig(ps[1])} | "
+              f"Out-Ent: {ps[2]:.3f}{sig(ps[2])} | "
+              f"Recip: {ps[3]:.3f}{sig(ps[3])}")
+    print("  (* = rejected at α=0.05)")
 
     # ── Master 32-panel grid ──────────────────────────────────────────────────
     print("\n[+] Plotting 32-Panel Master Grid...")
@@ -180,9 +252,14 @@ def main():
     for stat_idx, stat_name in enumerate(STAT_NAMES):
         for row, m_name in enumerate(MODEL_ORDER):
             ax = fig.add_subplot(gs[row, stat_idx])
-            ax.hist(results[m_name][:, stat_idx], bins=20,
-                    color=colors[m_name], alpha=0.8, edgecolor="white")
-            ax.axvline(real_stats[stat_idx], color="crimson", lw=2, ls="--")
+            if m_name in runnable:
+                ax.hist(results[m_name][:, stat_idx], bins=20,
+                        color=colors[m_name], alpha=0.8, edgecolor="white")
+                ax.axvline(real_stats[stat_idx], color="crimson", lw=2, ls="--")
+            else:
+                ax.text(0.5, 0.5, "insufficient\nsamples",
+                        ha="center", va="center", transform=ax.transAxes,
+                        fontsize=9, color="gray")
             if row == 0:
                 ax.set_title(stat_name, fontsize=14)
             if stat_idx == 0:
@@ -198,72 +275,74 @@ def main():
     k_real, p_real = get_ccdf(real_in_deg)
 
     for m_name in MODEL_ORDER:
-        print(f"    -> Generating plot for {m_name}...")
+        print(f"    -> {m_name}...")
         fig = plt.figure(figsize=(16, 12))
         fig.suptitle(f"PyPI vs. {m_name}", fontsize=16, y=0.95)
         gs  = gridspec.GridSpec(2, 3, figure=fig, hspace=0.35, wspace=0.35)
 
         c      = colors[m_name]
-        m_data = results[m_name]
+        m_data = results[m_name] if m_name in runnable else None
 
-        p_clust   = two_sided_pval(m_data[:, 0], real_stats[0])
-        p_in_ent  = two_sided_pval(m_data[:, 1], real_stats[1])
-        p_out_ent = two_sided_pval(m_data[:, 2], real_stats[2])
-        p_recip   = two_sided_pval(m_data[:, 3], real_stats[3])
+        def _pval(idx):
+            return two_sided_pval(m_data[:, idx], real_stats[idx]) if m_data is not None else float("nan")
+
+        p_clust, p_in_ent, p_out_ent, p_recip = (_pval(i) for i in range(4))
+
+        def _hist(ax, idx, title):
+            if m_data is not None:
+                ax.hist(m_data[:, idx], bins=20, color=c, alpha=0.7,
+                        edgecolor="white", label=m_name)
+                ax.axvline(real_stats[idx], color="crimson", lw=2, ls="--",
+                           label="Real PyPI")
+                ax.legend(fontsize=8)
+            else:
+                ax.text(0.5, 0.5, "insufficient samples", ha="center",
+                        va="center", transform=ax.transAxes, color="gray")
+            ax.set_title(title, fontsize=11)
 
         # [0,0] Clustering
-        ax0 = fig.add_subplot(gs[0, 0])
-        ax0.hist(m_data[:, 0], bins=20, color=c, alpha=0.7,
-                 edgecolor="white", label=m_name)
-        ax0.axvline(real_stats[0], color="crimson", lw=2, ls="--", label="Real PyPI")
-        ax0.set_title(f"Clustering\n(p = {p_clust:.3f})", fontsize=11)
-        ax0.legend()
+        _hist(fig.add_subplot(gs[0, 0]), 0,
+              f"Clustering\n(p = {p_clust:.3f})")
 
         # [0,1] In-Degree Entropy
-        ax1 = fig.add_subplot(gs[0, 1])
-        ax1.hist(m_data[:, 1], bins=20, color=c, alpha=0.7,
-                 edgecolor="white", label=m_name)
-        ax1.axvline(real_stats[1], color="crimson", lw=2, ls="--", label="Real PyPI")
-        ax1.set_title(f"In-deg entropy\n(p = {p_in_ent:.3f})", fontsize=11)
-        ax1.legend()
+        _hist(fig.add_subplot(gs[0, 1]), 1,
+              f"In-deg entropy\n(p = {p_in_ent:.3f})")
 
         # [0,2] Scatter: Clustering vs In-Entropy
         ax2 = fig.add_subplot(gs[0, 2])
-        ax2.scatter(m_data[:, 0], m_data[:, 1], color=c, alpha=0.5,
-                    label=f"{m_name} Samples")
-        ax2.scatter([real_stats[0]], [real_stats[1]], color="crimson",
-                    marker="*", s=150, zorder=5, label="Real PyPI")
+        if m_data is not None:
+            ax2.scatter(m_data[:, 0], m_data[:, 1], color=c, alpha=0.5,
+                        label=f"{m_name} Samples")
+            ax2.scatter([real_stats[0]], [real_stats[1]], color="crimson",
+                        marker="*", s=150, zorder=5, label="Real PyPI")
+            ax2.legend(fontsize=8)
         ax2.set_xlabel("Clustering")
         ax2.set_ylabel("In-degree Entropy")
         ax2.set_title("Clustering vs In-Entropy", fontsize=11)
-        ax2.legend()
 
         # [1,0] Out-Degree Entropy
-        ax3 = fig.add_subplot(gs[1, 0])
-        ax3.hist(m_data[:, 2], bins=20, color=c, alpha=0.7,
-                 edgecolor="white", label=m_name)
-        ax3.axvline(real_stats[2], color="crimson", lw=2, ls="--", label="Real PyPI")
-        ax3.set_title(f"Out-deg entropy\n(p = {p_out_ent:.3f})", fontsize=11)
-        ax3.legend()
+        _hist(fig.add_subplot(gs[1, 0]), 2,
+              f"Out-deg entropy\n(p = {p_out_ent:.3f})")
 
         # [1,1] Reciprocity
-        ax4 = fig.add_subplot(gs[1, 1])
-        ax4.hist(m_data[:, 3], bins=20, color=c, alpha=0.7,
-                 edgecolor="white", label=m_name)
-        ax4.axvline(real_stats[3], color="crimson", lw=2, ls="--", label="Real PyPI")
-        ax4.set_title(f"Reciprocity\n(p = {p_recip:.3f})", fontsize=11)
-        ax4.legend()
+        _hist(fig.add_subplot(gs[1, 1]), 3,
+              f"Reciprocity\n(p = {p_recip:.3f})")
 
         # [1,2] In-Degree CCDF (Log-Log)
         ax5 = fig.add_subplot(gs[1, 2])
-        ax5.loglog(k_real, p_real, "o", ms=4, color="steelblue", label="Real In-deg")
-
-        params = best_configs[m_name]["params"]
-        g_rep  = _build_graph(m_name, params, n_real, m_real)
-        k_rep, p_rep = get_ccdf(np.array(g_rep.indegree()))
-        ax5.loglog(k_rep, p_rep, "-", color=c, lw=2, label=f"{m_name} In-deg")
+        ax5.loglog(k_real, p_real, "o", ms=4, color="steelblue",
+                   label="Real In-deg")
+        try:
+            params = best_configs[m_name]["params"]
+            g_rep  = _build_graph(m_name, params, n_real, m_real)
+            k_rep, p_rep = get_ccdf(np.array(g_rep.indegree()))
+            if len(k_rep) > 0:
+                ax5.loglog(k_rep, p_rep, "-", color=c, lw=2,
+                           label=f"{m_name} In-deg")
+        except Exception:
+            pass
         ax5.set_title("In-degree CCDF (log-log)", fontsize=11)
-        ax5.legend()
+        ax5.legend(fontsize=8)
 
         clean_name = (m_name.replace(" ", "_")
                              .replace("(", "")

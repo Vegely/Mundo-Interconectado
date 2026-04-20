@@ -1,0 +1,54 @@
+PS C:\Users\bogurad\Desktop\ProyectosgitHub\Mundo-Interconectado\grafos\Formation\NewUntested> python .\test_models.py
+=================================================================
+  PyPI Network: Final 8-Model Validation Suite
+=================================================================
+
+[+] Running parallel validation (300 samples per model)...
+
+ER (Null)      : 100%|███████████████████████████████████████████████████████████████| 300/300 [03:15<00:00,  1.54it/s]
+BA (Null)      : 100%|███████████████████████████████████████████████████████████████| 300/300 [03:15<00:00,  1.54it/s]
+Bianconi_BB    : 100%|███████████████████████████████████████████████████████████████| 300/300 [03:15<00:00,  1.54it/s]
+Copying        : 100%|███████████████████████████████████████████████████████████████| 300/300 [03:15<00:00,  1.54it/s]
+SBM_PA         : 100%|███████████████████████████████████████████████████████████████| 300/300 [03:15<00:00,  1.54it/s]
+ERGM           : 100%|███████████████████████████████████████████████████████████████| 300/300 [03:15<00:00,  1.54it/s]
+BTER           : 100%|███████████████████████████████████████████████████████████████| 300/300 [03:15<00:00,  1.54it/s]
+Kronecker      : 100%|███████████████████████████████████████████████████████████████| 300/300 [03:15<00:00,  1.54it/s]
+
+
+[+] Valid samples per model:
+    ER (Null)       300/300
+    BA (Null)       300/300
+    Bianconi_BB     300/300
+    Copying         300/300
+    SBM_PA          300/300
+    ERGM            300/300
+    BTER            300/300
+    Kronecker       300/300
+
+[+] Final P-Value Results:
+---------------------------------------------------------------------------
+ ER (Null)       | Clust: 0.007* | In-Ent: 0.007* | Out-Ent: 0.007* | Recip: 0.007*
+ BA (Null)       | Clust: 0.007* | In-Ent: 0.007* | Out-Ent: 0.007* | Recip: 0.007*
+ Bianconi_BB     | Clust: 0.007* | In-Ent: 0.007* | Out-Ent: 0.007* | Recip: 0.007*
+ Copying         | Clust: 0.007* | In-Ent: 0.007* | Out-Ent: 0.007* | Recip: 0.007*
+ SBM_PA          | Clust: 0.007* | In-Ent: 0.007* | Out-Ent: 0.007* | Recip: 0.007*
+ ERGM            | Clust: 0.007* | In-Ent: 0.007* | Out-Ent: 0.007* | Recip: 0.007*
+ BTER            | Clust: 0.007* | In-Ent: 0.007* | Out-Ent: 0.120  | Recip: 0.007*
+ Kronecker       | Clust: 0.007* | In-Ent: 0.007* | Out-Ent: 0.007* | Recip: 0.007*
+  (* = rejected at α=0.05)
+
+[+] Plotting 32-Panel Master Grid...
+[+] Saved final_8model_master_grid.png!
+
+[+] Plotting Individual 6-Panel Summaries...
+    -> ER (Null)...
+    -> BA (Null)...
+    -> Bianconi_BB...
+    -> Copying...
+    -> SBM_PA...
+    -> ERGM...
+    -> BTER...
+    -> Kronecker...
+
+[+] All individual model plots saved successfully!
+PS C:\Users\bogurad\Desktop\ProyectosgitHub\Mundo-Interconectado\grafos\Formation\NewUntested>
