@@ -380,6 +380,67 @@
 			\caption{Tests de razón de verosimilitud frente a distribuciones alternativas.}
 		\end{table}
 	\end{frame}
+	
+\begin{frame}{Distribuciones de Centralidad}
+	
+	% Imagen en la parte superior, más grande
+	\begin{figure}
+		\centering
+		% Ajusta el width o el height según lo necesites, keepaspectratio evita que se deforme
+		\includegraphics[width=0.9\textwidth, height=0.45\textheight, keepaspectratio]{Imagenes/centrality_distributions_loglog}
+	\end{figure}
+	
+	\vspace{-0.2cm} % Reduce el espacio entre la imagen y las ecuaciones
+	
+	% Ecuaciones en la parte inferior, distribuidas en 3 columnas
+	\begin{columns}[T]
+		
+		\begin{column}{0.33\textwidth}
+			\centering
+			\textcolor{structure}{\textbf{PageRank}}
+			{\footnotesize
+				\begin{equation*}
+					\log(P(PR)) = -\gamma \log(PR) + C
+				\end{equation*}
+			}
+			\vspace{-0.4cm}
+			{\scriptsize \textit{Escenario rich get richer.}\par}
+		\end{column}
+		
+		\begin{column}{0.33\textwidth}
+			\centering
+			\textcolor{structure}{\textbf{Intermediación}}
+			{\footnotesize
+				\begin{equation*}
+					\log(P(CI)) \approx -K (\log CI)^2 + C
+				\end{equation*}
+			}
+			\vspace{-0.4cm}
+			{\scriptsize \textit{Exclusividad de los puentes.}\par}
+		\end{column}
+		
+		\begin{column}{0.33\textwidth}
+			\centering
+			\textcolor{structure}{\textbf{Cercanía}}
+			{\footnotesize
+				\begin{equation*}
+					P(CC) = \frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{1}{2}\left(\frac{CC-\mu}{\sigma}\right)^2}
+				\end{equation*}
+			}
+			\vspace{-0.4cm}
+			{\scriptsize \textit{Fenómeno de Pequeño Mundo.}\par}
+		\end{column}
+		
+	\end{columns}
+	
+\end{frame}
+	\begin{frame}
+		\centering
+		\Huge \textbf{¡Muchas gracias por su atención!} \\
+		\vspace{1cm}
+		\Large ¿Preguntas?
+	\end{frame}
+	
 	%---------------------------------------------------------
 	% DIAPOSITIVA 1: Metodología y Hardware
 	%---------------------------------------------------------
