@@ -1,0 +1,46 @@
+ { python test_models.py }
+=================================================================
+  PyPI Network: 7-Model Parallel Bayesian Optimizer  [v2]
+  Loss: W₁(in/out-deg) + 10·|Δclust| + 10·|Δrecip|
+=================================================================
+  Priors: α_in=1.8999 (p=0.532, not rejected) | α_out=2.5158 (p=0.000, rejected)
+  Alpha search range: [1.5, 2.4]
+[+] Loaded PyPI: 6765 nodes, 36054 edges | avg degree 5.3
+[+] Real stats: clust=0.0358  recip=0.0195
+[+] 300 trials/model | 20 QMC warm-up | adaptive eval budget | empirical seed trials
+[+] Running all 7 models in parallel — progress bars below:
+
+BA           : 100%|██████████████████████████████████████████| 300/300 [1:15:17<00:00, 15.06s/it, best=7.9118, done=✓]
+Bianconi_BB  : 100%|██████████████████████████████████████████| 300/300 [1:15:17<00:00, 15.06s/it, best=8.7656, done=✓]
+Copying      : 100%|██████████████████████████████████████████| 300/300 [1:15:17<00:00, 15.06s/it, best=7.6985, done=✓]
+SBM_PA       : 100%|█████████████████████████████████████████| 300/300 [1:15:17<00:00, 15.06s/it, best=11.6310, done=✓]
+ERGM         : 100%|█████████████████████████████████████████| 300/300 [1:15:17<00:00, 15.06s/it, best=10.8535, done=✓]
+BTER         : 100%|██████████████████████████████████████████| 300/300 [1:15:17<00:00, 15.06s/it, best=4.9021, done=✓]
+Kronecker    : 100%|█████████████████████████████████████████| 300/300 [1:15:17<00:00, 15.06s/it, best=11.2062, done=✓]
+
+=================================================================
+  Final Results  (ranked by composite Wasserstein+|Δclust|+|Δrecip| loss)
+=================================================================
+  +------+----------------+------------+------------------------------------------------------+
+  | #    | Model          | Loss       | Best Params                                          |
+  +------+----------------+------------+------------------------------------------------------+
+  | 1    | BTER           | 4.90215    | {"alpha": 1.8248058130033313, "density": 0.01316842… |
+  | 2    | Copying        | 7.69849    | {"beta": 0.7531015627086163, "m_init": 2}            |
+  | 3    | BA             | 7.91179    | {"m": 4}                                             |
+  | 4    | Bianconi_BB    | 8.76563    | {"m": 3}                                             |
+  | 5    | ERGM           | 10.85355   | {"theta_mut": 4.123548926785588, "theta_out": 1.695… |
+  | 6    | Kronecker      | 11.20621   | {"a": 0.7952283211052418, "b": 0.285428845975548, "… |
+  | 7    | SBM_PA         | 11.63099   | {"k": 6, "alpha": 2.086762759834528, "m1": 1, "m2":… |
+  +------+----------------+------------+------------------------------------------------------+
+
+  Stats columns: [W₁_in, W₁_out, |Δclust|, |Δrecip|, KS_in, KS_out]
+  BTER          : W1_in=2.7512  W1_out=1.2794  |Δclust|=0.0294  |Δrecip|=0.0577  KS_in=0.1635  KS_out=0.1729
+  Copying       : W1_in=1.2265  W1_out=5.9910  |Δclust|=0.0287  |Δrecip|=0.0194  KS_in=0.4399  KS_out=0.7039
+  BA            : W1_in=1.8279  W1_out=5.5823  |Δclust|=0.0307  |Δrecip|=0.0195  KS_in=0.5539  KS_out=0.6579
+  Bianconi_BB   : W1_in=2.9739  W1_out=5.2662  |Δclust|=0.0334  |Δrecip|=0.0192  KS_in=0.6725  KS_out=0.6089
+  ERGM          : W1_in=5.6547  W1_out=4.6721  |Δclust|=0.0343  |Δrecip|=0.0184  KS_in=0.6544  KS_out=0.5033
+  Kronecker     : W1_in=5.3265  W1_out=5.3265  |Δclust|=0.0358  |Δrecip|=0.0195  KS_in=0.9968  KS_out=0.6696
+  SBM_PA        : W1_in=3.3267  W1_out=4.2880  |Δclust|=0.0220  |Δrecip|=0.3796  KS_in=0.2996  KS_out=0.4849
+
+[+] Best parameters saved → best_parameters.json
+[+] Convergence plot saved → training_progress.png

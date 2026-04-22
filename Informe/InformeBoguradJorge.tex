@@ -605,37 +605,6 @@ Para analizar las comunidades se utiliza el algoritmo de Louvain aplicado sobre 
 	\SetCell{bg={rgb,255:red,235;green,59;blue,98}}   26 & 8    & Comunidad mínima centrada en la verificación matemática formal, compuesta por \texttt{math-verify} para la comprobación automática de soluciones matemáticas y \texttt{latex2sympy2\_extended} para la conversión de expresiones \LaTeX{} a objetos simbólicos de SymPy, con variantes para distintas versiones de ANTLR4 (\texttt{antlr4\_9\_3}, \texttt{antlr4\_11\_0}, \texttt{antlr4\_13\_2}). Se utiliza principalmente en el contexto de evaluación de modelos de lenguaje en tareas matemáticas (\texttt{lighteval[math]}). \\\end{longtblr}
 
 
-	\chapter{Hipótesis de modelo de la red}
-	En este capítulo se modela la red mediante diferentes modelos descritos a continuación, evaluando tanto modelos nulos de referencia como modelos teóricos avanzados para comprender la formación de sus enlaces.
-	
-	\section{Modelos nulos}
-	
-	\subsection{Erdős-Rényi (ER)}
-
-	
-	\subsection{Barabási-Albert (BA)}
-
-	
-	\section{Modelos avanzados}
-	
-	\subsection{Bianconi-Barabási (BB)}
-	Sección escrita en base al artículo \cite{bianconiBarabasi}. 
-	
-	\subsection{Block Two-Level Erdős-Rényi (BTER)}
-	Sección escrita en base al artículo \cite{BTER}. 
-	
-	\subsection{Copying Model}
-	Sección escrita en base al artículo \cite{Copying}.
-	
-	\subsection{Exponential Random Graph Models (ERGM)}
-	Sección escrita en base al artículo \cite{ERGM}.
-	
-	\subsection{Stochastic Kronecker Graphs}
-	Sección escrita en base al artículo \cite{Kronecker}.
-	
-	\subsection{Stochastic Block Model con Preferential Attachment (SBM+PA)}
-	Sección escrita en base al artículo \cite{SBM_PA}. 
-	
 	\chapter{Herramienta de visualización de la red}
 	
 	Para poder explorar de forma interactiva la red de dependencias de Python se desarrolla una herramienta de visualización en tiempo real basada en un motor de físicas implementado íntegramente en Python. La herramienta, recogida en el script \texttt{visualizer.py}. Mediante esta aplicación se puede navegar a través de la red, inspeccionar diferentes métricas en función del nodo y ver como va variando la estructura de la red en función de las físicas escogidas con mejor rendimiento para redes de este tamaño que en Gephi.
@@ -687,7 +656,7 @@ Para hacer la visualización más intuitiva del grafo en la herramienta se incor
 	$$\mathbf{F}_{\text{g}, i} = - k_g G_i \mathbf{p}_i$$
 	donde $k_g$ es \texttt{gravity} y $G_i$ corresponde a su grado normalizado (\texttt{norm\_degrees\_2d}).
 	
-	\item \textbf{Fuerza repulsiva}: para que el programa no se congele al calcular la fuerza de repulsión de manera tradicional se calcula en cada frame las fuerzas de repulsión para un subconjunto $\mathcal{R}$ de tamaño $N_R = 300$ (\texttt{sample\_size}). De esta manera, aunque el calculo no es del todo exacto, se agilizan los cálculos y se asume que la distribución visual final no variaría demasiado en el equilibrio:
+	\item \textbf{Fuerza de repusión}: para que el programa no se congele al calcular la fuerza de repulsión de manera tradicional se calcula en cada frame las fuerzas de repulsión para un subconjunto $\mathcal{R}$ de tamaño $N_R = 300$ (\texttt{sample\_size}). De esta manera, aunque el calculo no es del todo exacto, se agilizan los cálculos y se asume que la distribución visual final no variaría demasiado en el equilibrio:
 	$$\mathbf{F}_{\text{r}, i} = \sum_{j \in \mathcal{R}} k_r \frac{\mathbf{p}_i - \mathbf{p}_j}{\|\mathbf{p}_i - \mathbf{p}_j\|^2 + 1}$$
 	donde $k_r$ es outward\_push. Se añade un \(+1\) en el denominador para evitar singularidades en el caso de que dos nodos estén superpuestos. Se utiliza esta formula de la fuerza para que los nodos tengan más alcance en la repulsión para reducir las aglomeraciones de nodos.
 \end{itemize}

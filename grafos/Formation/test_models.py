@@ -1,211 +1,294 @@
 """
 test_models.py
 ======================================================
-Reads the 6 optimized models from train.py, runs the validation,
-computes p-values, and plots the massive 24-panel comparison.
-"""
+Validates 8 Models. Models are imported from compiled Cython extensions.
+Computes p-values using intuitive physical metrics (Max Hub, Assortativity)
+and plots distance errors using Wasserstein distances.
 
+Fixed: Windows multiprocessing serialization for global variables.
+"""
 import json
 import warnings
 import multiprocessing
-import concurrent.futures
 import numpy as np
 import igraph as ig
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+from tqdm import tqdm
+from scipy.stats import wasserstein_distance
+
+from bb_model import bianconi_barabasi_model
+from copying_model import copying_model
+from sbm_pa_model import sbm_pa_model
+from ergm_model import ergm_model
+from bter_model import bter_model
+from kronecker_model import kronecker_model
 
 warnings.filterwarnings("ignore")
 
-GRAPH_FILE = "pypi_multiseed_10k.graphml"
-INPUT_FILE = "best_parameters.json"
-N_MC       = 200   # Validation samples
-ALPHA      = 0.05
+GRAPH_FILE  = "pypi_multiseed_10k.graphml"
+INPUT_FILE  = "best_parameters.json"
+N_MC        = 300   # Validation samples
+ALPHA       = 0.05
 
-STAT_NAMES = ["Clustering", "In-Entropy", "Out-Entropy", "Reciprocity"]
-MODEL_ORDER = ["Copying", "Hybrid", "SBM_PA", "ERGM", "BTER", "Kronecker"]
+# Names for the 4 plotted columns in the 32-panel grid
+STAT_NAMES  = ["Clustering", "W1 In-Deg", "W1 Out-Deg", "Reciprocity"]
+MODEL_ORDER = ["ER (Null)", "BA (Null)", "Bianconi_BB", "Copying", "SBM_PA", "ERGM", "BTER", "Kronecker"]
 
-def compute_stats(g: ig.Graph) -> np.ndarray:
+
+def get_ccdf(degrees: np.ndarray):
+    """Calculates the Complementary Cumulative Distribution Function (Log-Log suitable)."""
+    if len(degrees) == 0:
+        return np.array([]), np.array([])
+    k, counts = np.unique(degrees, return_counts=True)
+    idx = np.argsort(k)
+    k = k[idx]
+    counts = counts[idx]
+    ccdf = np.cumsum(counts[::-1])[::-1] / len(degrees)
+    return k, ccdf
+
+
+def compute_stats(g: ig.Graph, real_in: np.ndarray, real_out: np.ndarray) -> np.ndarray:
+    """
+    Computes 6 stats total.
+    0-3 are used for visual plotting (Wasserstein shape matching).
+    4-5 (plus 0 and 3) are used for strict p-value checking.
+    """
+    # 0. Clustering
     clust = g.as_undirected(combine_edges="first").transitivity_undirected(mode="zero")
-    in_deg, out_deg = np.array(g.indegree()), np.array(g.outdegree())
+    if np.isnan(clust): clust = 0.0
     
-    in_c = np.bincount(in_deg); in_p = in_c[in_c > 0] / len(in_deg)
-    out_c = np.bincount(out_deg); out_p = out_c[out_c > 0] / len(out_deg)
+    in_deg = np.array(g.indegree())
+    out_deg = np.array(g.outdegree())
     
-    in_ent = float(-np.sum(in_p * np.log2(in_p)))
-    out_ent = float(-np.sum(out_p * np.log2(out_p)))
+    # 1 & 2. Wasserstein Distances (Lower is better, 0.0 = perfect match)
+    w1_in = wasserstein_distance(in_deg, real_in) if len(in_deg) > 0 else float('inf')
+    w1_out = wasserstein_distance(out_deg, real_out) if len(out_deg) > 0 else float('inf')
     
-    return np.array([clust, in_ent, out_ent, g.reciprocity()])
+    # 3. Reciprocity
+    recip = g.reciprocity()
+    if np.isnan(recip): recip = 0.0
+    
+    # 4. Max Hub (Extreme Value Bounds)
+    max_in = float(np.max(in_deg)) if len(in_deg) > 0 else 0.0
+    
+    # 5. Assortativity (Internal Wiring Logic)
+    assort = g.assortativity_degree(directed=True)
+    if np.isnan(assort): assort = 0.0
+        
+    return np.array([clust, w1_in, w1_out, recip, max_in, assort])
+
 
 def two_sided_pval(sample: np.ndarray, observed: float) -> float:
+    """Calculates the empirical two-sided p-value."""
     n = len(sample)
+    if n == 0: return 0.0
     leq = int(np.sum(sample <= observed))
     return 2 * min(leq + 1, n + 1 - leq + 1) / (n + 1)
 
-# Generators (Identical logic to train.py)
-def copying_model(n, m, beta, m_init):
-    rng = np.random.default_rng()
-    edges = [(i, i + 1) for i in range(m_init - 1)]
-    adj_out = [[] for _ in range(n)]
-    for u, v in edges: adj_out[u].append(v)
-    for t in range(m_init, n):
-        proto = rng.integers(0, t)
-        targets = set([w for w in adj_out[proto] if w != t and rng.random() < beta] + [rng.integers(0, t)])
-        for w in targets: edges.append((t, w)); adj_out[t].append(w)
-    return ig.Graph(n=n, edges=edges, directed=True)
 
-def hybrid_model(n, m, m_init, p_copy):
-    rng = np.random.default_rng()
-    edges, in_deg, adj_out = [], np.zeros(n, dtype=float), [[] for _ in range(n)]
-    for i in range(m_init):
-        for j in range(m_init):
-            if i != j: edges.append((i, j)); in_deg[j] += 1; adj_out[i].append(j)
-    for t in range(m_init, n):
-        w = in_deg[:t] + 1.0 
-        proto = rng.choice(t, p=w/w.sum())
-        targets = set([proto] + [w for w in adj_out[proto] if w != t and rng.random() < p_copy])
-        if rng.random() < 0.2: targets.add(rng.integers(0, t))
-        for tgt in targets: edges.append((t, tgt)); in_deg[tgt] += 1; adj_out[t].append(tgt)
-    return ig.Graph(n=n, edges=edges, directed=True)
+def _build_graph(m_name, params, n_real, m_real):
+    if m_name == "ER (Null)":
+        return ig.Graph.Erdos_Renyi(n=n_real, m=m_real, directed=True)
+    elif m_name == "BA (Null)" or m_name == "BA":
+        return ig.Graph.Barabasi(n=n_real, m=int(params.get("m", 3)), directed=True)
+    elif m_name == "Bianconi_BB":
+        return bianconi_barabasi_model(n_real, m_real, int(params["m"]))
+    elif m_name == "Copying":
+        return copying_model(n_real, m_real, params["beta"], int(params["m_init"]))
+    elif m_name == "SBM_PA":
+        return sbm_pa_model(n_real, int(params["k"]), params["alpha"], int(params["m1"]), int(params["m2"]))
+    elif m_name == "ERGM":
+        return ergm_model(n_real, m_real, params["theta_mut"], params["theta_out"], params["theta_in"], params.get("theta_tri", 0.0))
+    elif m_name == "BTER":
+        return bter_model(n_real, m_real, params["alpha"], params["density"])
+    elif m_name == "Kronecker":
+        return kronecker_model(n_real, m_real, params["a"], params["b"], params["c"], params.get("d", -1.0))
+    return ig.Graph(n_real, directed=True)
 
-def sbm_pa_model(n, m, m_e, n_comm, mu, p_recip):
-    rng = np.random.default_rng()
-    edges, in_deg = [], np.zeros(n, dtype=float)
-    comms = np.arange(n) % n_comm
-    rng.shuffle(comms)
-    cs = max(3, m_e)
-    for c in range(n_comm):
-        cn = np.where(comms == c)[0][:cs]
-        for u in cn:
-            for v in cn:
-                if u != v: edges.append((int(u), int(v))); in_deg[v] += 1
-    for t in range(cs * n_comm, n):
-        c_t, actual_m = comms[t], max(1, int(rng.normal(m_e, 2))) 
-        for _ in range(actual_m):
-            mask = (comms[:t] == c_t) if rng.random() > mu else (comms[:t] != c_t)
-            cands = np.where(mask)[0]
-            if len(cands) == 0: cands = np.arange(t)
-            tgt = rng.choice(cands, p=(in_deg[cands] + 1.0)/sum(in_deg[cands] + 1.0))
-            edges.append((t, int(tgt))); in_deg[tgt] += 1
-            if rng.random() < p_recip: edges.append((int(tgt), t)); in_deg[t] += 1
-    return ig.Graph(n=n, edges=edges, directed=True)
-
-def ergm_model(n, m, theta_mut, theta_star):
-    rng = np.random.default_rng()
-    edges = set((s, t) for s, t in zip(rng.integers(0, n, m), rng.integers(0, n, m)) if s != t)
-    in_deg = np.zeros(n, dtype=int)
-    for u, v in edges: in_deg[v] += 1
-    el = list(edges)
-    for _ in range(30000):
-        if not el: break
-        idx = rng.integers(0, len(el))
-        u, v = el[idx]
-        nu, nv = int(rng.integers(0, n)), int(rng.integers(0, n))
-        if nu == nv or (nu, nv) in edges: continue
-        delta = (theta_mut * (((nv, nu) in edges) - ((v, u) in edges))) + (theta_star * (in_deg[nv] - (in_deg[v] - 1)))
-        if delta >= 0 or rng.random() < np.exp(delta):
-            edges.remove((u, v)); edges.add((nu, nv)); el[idx] = (nu, nv)
-            in_deg[v] -= 1; in_deg[nv] += 1
-    return ig.Graph(n=n, edges=list(edges), directed=True)
-
-def bter_model(n, m, alpha, block_density):
-    rng, sizes, edges, offset = np.random.default_rng(), [], [], 0
-    while sum(sizes) < n:
-        s = int(rng.pareto(alpha) + 1)
-        sizes.append(s if sum(sizes) + s <= n else n - sum(sizes))
-    for s in sizes:
-        if s > 1:
-            for u in range(s):
-                for v in range(s):
-                    if u != v and rng.random() < block_density: edges.append((offset+u, offset+v))
-        offset += s
-    if len(edges) < m: edges.extend(list(zip(rng.integers(0, n, m - len(edges)), rng.integers(0, n, m - len(edges)))))
-    return ig.Graph(n=n, edges=edges, directed=True)
-
-def kronecker_model(n, m_real, a, b, c):
-    """Stochastic Kronecker Graph (Fractal matrix multiplication)."""
-    k = int(np.ceil(np.log2(n)))
-    rng = np.random.default_rng()
-    
-    # Ensure d doesn't go negative, and normalize the array so it strictly sums to 1.0
-    d = max(0.01, 1.0 - (a + b + c)) 
-    p = np.array([a, b, c, d])
-    p = p / p.sum()  # <--- THIS FIXES THE CRASH
-    
-    edges = []
-    for _ in range(m_real):
-        u, v = 0, 0
-        for i in range(k):
-            step = 2**(k - 1 - i)
-            quad = rng.choice(4, p=p)
-            if quad == 1: v += step
-            elif quad == 2: u += step
-            elif quad == 3: u += step; v += step
-        if u < n and v < n and u != v: edges.append((u, v))
-        
-    return ig.Graph(n=n, edges=edges, directed=True)
 
 def worker_run(args):
-    m_name, params, seed, n_real, m_real = args
-    np.random.seed(seed)
-    if m_name == "Copying": g = copying_model(n_real, m_real, params["beta"], params["m_init"])
-    elif m_name == "Hybrid": g = hybrid_model(n_real, m_real, params["m_init"], params["p_copy"])
-    elif m_name == "SBM_PA": g = sbm_pa_model(n_real, m_real, params["m"], params["n_comm"], params["mu"], params["p_recip"])
-    elif m_name == "ERGM": g = ergm_model(n_real, m_real, params["theta_mut"], params["theta_star"])
-    elif m_name == "BTER": g = bter_model(n_real, m_real, params["alpha"], params["density"])
-    else: g = kronecker_model(n_real, m_real, params["a"], params["b"], params["c"])
-    return m_name, compute_stats(g)
-
-def main():
-    print("=" * 60)
-    print("  PyPI Network: The 6-Model Validation")
-    print("=" * 60)
-
+    # Unpack the real_in and real_out arrays explicitely sent to the worker
+    m_name, params, n_real, m_real, real_in, real_out = args
     try:
-        with open(INPUT_FILE, 'r') as f: best_configs = json.load(f)
-    except FileNotFoundError:
-        print(f"Error: Run train.py first.")
-        return
+        g = _build_graph(m_name, params, n_real, m_real)
+        stats = compute_stats(g, real_in, real_out)
+        return stats
+    except Exception as e:
+        return None
 
-    real_g = ig.Graph.Read_GraphML(GRAPH_FILE)
-    if not real_g.is_directed(): real_g = real_g.as_directed(mode="mutual")
-    n_real, m_real = real_g.vcount(), real_g.ecount()
-    real_stats = compute_stats(real_g)
 
-    tasks = [(m_name, best_configs[m_name]["params"], 1000 + i, n_real, m_real) for m_name in MODEL_ORDER for i in range(N_MC)]
+def plot_individual_summary(m_name, c, results_dict, best_configs, n_real, m_real, k_real, p_real, k_out_real, p_out_real, real_stats):
+    """Generates the highly detailed 6-panel figure for a single model."""
+    fig = plt.figure(figsize=(14, 8))
+    fig.suptitle(f"{m_name} - Detail View", fontsize=16, y=0.96)
+    gs = gridspec.GridSpec(2, 3, figure=fig, wspace=0.3, hspace=0.4)
+
+    def _hist(ax, stat_idx, title):
+        ax.hist(results_dict[m_name][:, stat_idx], bins=25, color=c, alpha=0.6, edgecolor='white')
+        # Clamp dashed line to 0.0 if it's a Wasserstein metric
+        target_val = 0.0 if stat_idx in [1, 2] else real_stats[stat_idx]
+        ax.axvline(target_val, color='crimson', ls='--', lw=2, label=f"Target: {target_val:.3f}")
+        ax.set_title(title, fontsize=10)
+        ax.legend(fontsize=8)
+
+    # [0,0] Clustering
+    _hist(fig.add_subplot(gs[0, 0]), 0, "Clustering Coefficient")
+
+    # [0,1] Scatter: Clust vs W1-In
+    ax2 = fig.add_subplot(gs[0, 1])
+    ax2.scatter(results_dict[m_name][:, 0], results_dict[m_name][:, 1], alpha=0.5, color=c, s=15)
+    ax2.plot(real_stats[0], 0.0, 'r*', ms=12, label="Target (Reality)")
+    ax2.set_xlabel("Clustering")
+    ax2.set_ylabel("W1 In-Degree Error")
+    ax2.set_title("Clustering vs W1 In-Degree Error", fontsize=10)
+    ax2.legend(fontsize=8)
+
+    # [1,0] W1 Out-Degree Error
+    _hist(fig.add_subplot(gs[1, 0]), 2, "W1 Out-Degree Error")
+
+    # [1,1] Reciprocity
+    _hist(fig.add_subplot(gs[1, 1]), 3, "Reciprocity")
+
+    # [0,2] In-Degree CCDF (Log-Log)
+    ax5 = fig.add_subplot(gs[0, 2])
+    if len(k_real) > 0:
+        ax5.loglog(k_real, p_real, "o", ms=4, color="steelblue", label="Real In-deg")
+    try:
+        params = best_configs[m_name]["params"]
+        g_rep  = _build_graph(m_name, params, n_real, m_real)
+        k_rep, p_rep = get_ccdf(np.array(g_rep.indegree()))
+        if len(k_rep) > 0:
+            ax5.loglog(k_rep, p_rep, "-", color=c, lw=2, label=f"{m_name}")
+    except Exception as e:
+        pass
+    ax5.set_title("In-degree CCDF (log-log)", fontsize=10)
+    ax5.legend(fontsize=8)
+
+    # [1,2] Out-Degree CCDF (Log-Log)
+    ax6 = fig.add_subplot(gs[1, 2])
+    if len(k_out_real) > 0:
+        ax6.loglog(k_out_real, p_out_real, "o", ms=4, color="steelblue", label="Real Out-deg")
+    try:
+        k_out_rep, p_out_rep = get_ccdf(np.array(g_rep.outdegree()))
+        if len(k_out_rep) > 0:
+            ax6.loglog(k_out_rep, p_out_rep, "-", color=c, lw=2, label=f"{m_name}")
+    except Exception as e:
+        pass
+    ax6.set_title("Out-degree CCDF (log-log)", fontsize=10)
+    ax6.legend(fontsize=8)
+
+    safe_name = m_name.replace(" ", "_").replace("(", "").replace(")", "")
+    plt.savefig(f"summary_{safe_name}.png", bbox_inches='tight', dpi=150)
+    plt.close()
+
+
+if __name__ == "__main__":
+    print("[+] Loading real graph...")
+    real_g = ig.read(GRAPH_FILE)
+    n_real = real_g.vcount()
+    m_real = real_g.ecount()
+
+    # Empirical Distributions
+    REAL_IN_DEGREES = np.array(real_g.indegree())
+    REAL_OUT_DEGREES = np.array(real_g.outdegree())
+    
+    # Calculate real target stats
+    real_clust = real_g.as_undirected(combine_edges="first").transitivity_undirected(mode="zero")
+    if np.isnan(real_clust): real_clust = 0.0
+    real_recip = real_g.reciprocity()
+    if np.isnan(real_recip): real_recip = 0.0
+    
+    real_max_in = float(np.max(REAL_IN_DEGREES)) if len(REAL_IN_DEGREES) > 0 else 0.0
+    real_assort = real_g.assortativity_degree(directed=True)
+    if np.isnan(real_assort): real_assort = 0.0
+
+    # Indices: 0=Clust, 1=W1_In, 2=W1_Out, 3=Recip, 4=Max_In, 5=Assort
+    real_stats = np.array([real_clust, 0.0, 0.0, real_recip, real_max_in, real_assort])
+
+    k_in_real, p_in_real = get_ccdf(REAL_IN_DEGREES)
+    k_out_real, p_out_real = get_ccdf(REAL_OUT_DEGREES)
+
+    print("[+] Loading optimized parameters...")
+    with open(INPUT_FILE, "r") as f:
+        best_configs = json.load(f)
+        
+    best_configs["ER (Null)"] = {"params": {}}
+    if "BA" in best_configs:
+        best_configs["BA (Null)"] = best_configs.pop("BA")
+    elif "BA (Null)" not in best_configs:
+        best_configs["BA (Null)"] = {"params": {"m": 3}}
+
+    print(f"\n[+] Running parallel validation ({N_MC} samples per model)...")
     results = {m: [] for m in MODEL_ORDER}
     
-    print(f"[+] Running parallel validation...")
-    with concurrent.futures.ProcessPoolExecutor(max_workers=multiprocessing.cpu_count()) as executor:
-        for m_name, stat_arr in executor.map(worker_run, tasks):
-            results[m_name].append(stat_arr)
-
-    for k in results: results[k] = np.array(results[k])
-
-    print("\n[+] Final P-Value Results:")
-    print("-" * 75)
     for m_name in MODEL_ORDER:
-        ps = [two_sided_pval(results[m_name][:, i], real_stats[i]) for i in range(4)]
-        print(f" {m_name:<10} | Clust: {ps[0]:.3f} | In-Ent: {ps[1]:.3f} | Out-Ent: {ps[2]:.3f} | Recip: {ps[3]:.3f}")
+        if m_name not in best_configs:
+            continue
+            
+        params = best_configs[m_name]["params"]
+        
+        # Explicitly pack REAL_IN_DEGREES and REAL_OUT_DEGREES for Windows compatibility
+        tasks = [(m_name, params, n_real, m_real, REAL_IN_DEGREES, REAL_OUT_DEGREES) for _ in range(N_MC)]
+        
+        valid_stats = []
+        with multiprocessing.Pool() as pool:
+            for res in tqdm(pool.imap_unordered(worker_run, tasks), total=N_MC, desc=f"{m_name[:12]:<14}"):
+                if res is not None:
+                    valid_stats.append(res)
+                    
+        results[m_name] = np.array(valid_stats)
+        
+    print("\n[+] Valid samples per model:")
+    for m_name in MODEL_ORDER:
+        if len(results[m_name]) > 0:
+            print(f"    {m_name:<14} {len(results[m_name])}/{N_MC}")
 
-    print("\n[+] Plotting 24-Panel Grid...")
+    print("\n[+] Final P-Value Results (Using Intuitive Mechanics Metrics):")
+    print("-" * 85)
+    for m_name in MODEL_ORDER:
+        if len(results[m_name]) == 0: continue
+        
+        # P-values pull: Clust (0), Max In-Deg (4), Assortativity (5), Recip (3)
+        pval_indices = [0, 4, 5, 3]
+        ps = [two_sided_pval(results[m_name][:, i], real_stats[i]) for i in pval_indices]
+        
+        p_strs = [f"{p:.3f}*" if p < ALPHA else f"{p:.3f} " for p in ps]
+        print(f" {m_name:<14} | Clust: {p_strs[0]} | Max Hub: {p_strs[1]} | Assort: {p_strs[2]} | Recip: {p_strs[3]}")
+
+    print("\n[+] Plotting 32-Panel Master Grid...")
     fig = plt.figure(figsize=(20, 24))
-    fig.suptitle("The 6-Model Comparison vs. Real PyPI Network", fontsize=20, y=0.92)
+    fig.suptitle("Network Formation: 8-Model Validation", fontsize=22, y=0.92)
     gs = gridspec.GridSpec(len(MODEL_ORDER), 4, figure=fig, hspace=0.4, wspace=0.3)
     
-    colors = {"Copying": "#3498db", "Hybrid": "#9b59b6", "SBM_PA": "#2ecc71", 
-              "ERGM": "#e74c3c", "BTER": "#f39c12", "Kronecker": "#34495e"}
-    
-    for stat_idx, stat_name in enumerate(STAT_NAMES):
-        for row, m_name in enumerate(MODEL_ORDER):
-            ax = fig.add_subplot(gs[row, stat_idx])
-            ax.hist(results[m_name][:, stat_idx], bins=20, color=colors[m_name], alpha=0.7)
-            ax.axvline(real_stats[stat_idx], color="crimson", lw=2, ls="--")
-            if row == 0: ax.set_title(stat_name, fontsize=14)
-            if stat_idx == 0: ax.set_ylabel(m_name, fontsize=12, fontweight='bold')
+    colors = {"ER (Null)": "#bdc3c7", "BA (Null)": "#95a5a6", "Bianconi_BB": "#9b59b6", 
+              "Copying": "#3498db", "SBM_PA": "#2ecc71", "ERGM": "#e74c3c", 
+              "BTER": "#f39c12", "Kronecker": "#34495e"}
+              
+    for i, m_name in enumerate(MODEL_ORDER):
+        if len(results[m_name]) == 0: continue
+        c = colors.get(m_name, "#333333")
+        
+        # Plot only indices 0, 1, 2, 3 (Clust, W1-In, W1-Out, Recip)
+        for j in range(4):
+            ax = fig.add_subplot(gs[i, j])
+            ax.hist(results[m_name][:, j], bins=30, color=c, alpha=0.7, edgecolor='white')
+            
+            target_val = 0.0 if j in [1, 2] else real_stats[j]
+            ax.axvline(target_val, color='crimson', linestyle='dashed', linewidth=2)
+            
+            if i == 0:
+                ax.set_title(STAT_NAMES[j], fontsize=14, pad=10)
+            if j == 0:
+                ax.set_ylabel(m_name, fontsize=12, fontweight='bold', labelpad=10)
+                
+    plt.savefig("final_8model_master_grid.png", bbox_inches='tight', dpi=150)
+    print("[+] Saved final_8model_master_grid.png!")
 
-    plt.savefig("final_6model_validation.png", dpi=150, bbox_inches="tight")
-    print("[+] Saved final_6model_validation.png!")
+    print("\n[+] Plotting Individual 6-Panel Summaries...")
+    for m_name in MODEL_ORDER:
+        if len(results[m_name]) == 0: continue
+        c = colors.get(m_name, "#333333")
+        plot_individual_summary(m_name, c, results, best_configs, n_real, m_real, k_in_real, p_in_real, k_out_real, p_out_real, real_stats)
 
-if __name__ == '__main__':
-    multiprocessing.freeze_support()
-    main()
+    print("[+] All done!")
