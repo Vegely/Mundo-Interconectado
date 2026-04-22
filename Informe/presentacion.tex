@@ -1,4 +1,4 @@
-\documentclass[aspectratio=169, 11pt]{beamer}
+\documentclass[aspectratio=169, 11pt, xcolor=table]{beamer}
 
 % Tema y colores
 \usetheme{Madrid}
@@ -21,6 +21,7 @@
 \usepackage{tikz-3dplot}
 \usepackage{multirow}
 \usepackage{booktabs}
+\usepackage{xcolor}
 
 % Hipervínculos
 \usepackage{hyperref}
@@ -39,9 +40,9 @@
 	\end{frame}
 	
 	%---------------------------------------------------------
-	\begin{frame}{Índice}
-		\tableofcontents
-	\end{frame}
+	%\begin{frame}{Índice}
+	%	\tableofcontents
+	%\end{frame}
 	
 	%---------------------------------------------------------
 	\section{Introducción}
@@ -88,17 +89,17 @@
 	\end{frame}
 	
 	%---------------------------------------------------------
-	\begin{frame}{Objetivos del Estudio}
-		\begin{enumerate}
-			\item \textbf{Visión macroscópica} del ecosistema.
-			\item Identificación de \textbf{hubs}.
-			\item Segmentación de la red por \textbf{comunidades}.
-			\item \textbf{Topología} de la red.
-			\item \textbf{Visualización} mediante una herramienta interactiva propia.
-		\end{enumerate}
-	\end{frame}
+	%\begin{frame}{Objetivos del Estudio}
+	%	\begin{enumerate}
+	%		\item \textbf{Visión macroscópica} del ecosistema.
+	%		\item Identificación de \textbf{hubs}.
+	%		\item Segmentación de la red por \textbf{comunidades}.
+	%		\item \textbf{Topología} de la red.
+	%		\item \textbf{Visualización} mediante una herramienta interactiva propia.
+	%	\end{enumerate}
+	%\end{frame}
 		
-	\begin{frame}{Descripción de la Red}
+	\begin{frame}{Descripción de la red}
 		\begin{block}{Grafo dirigido}
 			\begin{itemize}
 				\item $A \rightarrow B$: $A$ depende de $B$. 
@@ -128,7 +129,7 @@
 	\end{frame}
 	
 	\section*{Análisis de la red}
-	\begin{frame}{Conectividad y Componente Gigante}
+	\begin{frame}{Conectividad y componente gigante}
 		\begin{columns}[c]		
 			\begin{column}{0.45\textwidth}
 				\begin{figure}
@@ -208,6 +209,7 @@
 	
 	%---------------------------------------------------------
 	\begin{frame}{Distribución de grado y ley de potencias}
+		\vspace*{-0.5cm}
 		\begin{columns}[T]
 			
 			% Columna Izquierda: Fórmulas MLE
@@ -218,11 +220,14 @@
 					\frac{\zeta'(\hat{\alpha}, x_{\min})}{\zeta(\hat{\alpha}, x_{\min})} = -\frac{1}{n} \sum_{i=1}^n \ln x_i
 					\end{equation*}
 					
-					\vspace{0.2cm}
-					
-					Aproximación en tiempo discreto:
+					Aproximación caso discreto:
 					\begin{equation*}
 					\hat{\alpha} \approx 1 + n \left[ \sum_{i=1}^n \ln \frac{x_i}{x_{\min} - 0.5} \right]^{-1}
+					\end{equation*}
+					
+					Desviación típica aproximada:
+					\begin{equation*}
+					\hat{\sigma} \approx \frac{\hat{\alpha}-1}{\sqrt{n}}
 					\end{equation*}
 				\end{block}
 			\end{column}
@@ -289,7 +294,7 @@
 	\end{frame}
 	
 	%---------------------------------------------------------
-	\begin{frame}{Comparación con hipótesis alternativas (Test de Vuong)}
+	\begin{frame}{Comparación con hipótesis alternativas}
 		\begin{block}{Razón de log-verosimilitudes ($\mathcal{R}$)}
 			¿Alguna distribución alternativa se ajusta mejor que la ley de potencias?
 			\begin{equation*}
@@ -332,12 +337,12 @@
 					\hline
 					$x_{\min}$ óptimo & 3.0 & 11.0 \\
 					$x_{\min}$ bootstrap & $3.6 \pm 1.4$ & $21.4 \pm 8.9$ \\
-					$\alpha$ óptimo & $1.8999 \pm 0.0222$ & $2.5158 \pm 0.0479$ \\
-					KS óptima & 0.0139 & 0.0608 \\
-					$n_{\text{cola}}$ & 1646 (24.3\%) & 1001 (22.0\%) \\
-					p-valor (Test KS) & \textbf{0.532} & \textbf{0.000} \\
+					$\alpha$ óptimo & \cellcolor{yellow!40}$1.8999 \pm 0.0222$ & $2.5158 \pm 0.0479$ \\
+					KS óptima & 0,0139 & 0,0608 \\
+					$n_{\text{cola}}$ & 1646 (24,3\%) & 1001 (22,0\%) \\
+					p-valor & \cellcolor{green!40}0,532 & \cellcolor{red!40}0,000 \\
 					\hline
-					Test de Vuong & No rechazada ($p > 0.1$) & Rechazada ($p \le 0.1$) \\
+					Interpretación & No rechazada ($p > 0.1$) & Rechazada ($p \le 0.1$) \\
 					\hline
 				\end{tabular}
 			}
@@ -346,34 +351,34 @@
 	\end{frame}
 	
 	%---------------------------------------------------------
-	\begin{frame}{Distribuciones log-log y búsqueda de $x_{\min}$}
-		\begin{figure}
-			\centering
-			\includegraphics[width=\linewidth, height=0.65\textheight, keepaspectratio]{Imagenes/ley_potencias_kmin}
-			\caption{Distribuciones de masa empíricas vs. teóricas y búsqueda de $x_{\min}$.}
-		\end{figure}
-	\end{frame}
+	%\begin{frame}{Distribuciones log-log y búsqueda de $x_{\min}$}
+	%	\begin{figure}
+	%		\centering
+	%		\includegraphics[width=\linewidth, height=0.65\textheight, %keepaspectratio]{Imagenes/ley_potencias_kmin}
+	%		\caption{Distribuciones de masa empíricas vs. teóricas y búsqueda de $x_{\min}$.}
+	%	\end{figure}
+	%\end{frame}
 	
 	%---------------------------------------------------------
 	\begin{frame}{Comparación con alternativas}
 		\begin{table}
 			\centering
 			\resizebox{\linewidth}{!}{
-				\begin{tabular}{lrcl}
+				\begin{tabular}{lccl}
 					\hline
-					\textbf{Distribución Alternativa} & \textbf{LR ($\mathcal{R}$)} & \textbf{p-valor} & \textbf{Interpretación} \\
+					\textbf{Distribución Alternativa} & $\mathcal{R}$ & \textbf{p-valor} & \textbf{Interpretación} \\
 					\hline
 					\multicolumn{4}{c}{\textbf{Grado de Entrada} \quad ($k_{\min}=3, \alpha=1.900, p_{\text{KS}}=0.532$)} \\
 					\hline
-					Exponencial & $8.432$ & $<0.001$ & Ley de potencias favorable \\
-					Poisson     & $5.401$ & $<0.001$ & Ley de potencias favorable \\
-					Yule        & $-1.598$ & $0.110$ & No distinguibles \\
+					Exponencial & $8.432$ & \cellcolor{green!40}$<0.001$ & Ley de potencias favorable \\
+					Poisson     & $5.401$ & \cellcolor{green!40}$<0.001$ & Ley de potencias favorable \\
+					Yule        & $-1.598$ & \cellcolor{yellow!40}$0.110$ & No distinguibles \\
 					\hline
 					\multicolumn{4}{c}{\textbf{Grado de Salida} \quad ($k_{\min}=11, \alpha=2.516, p_{\text{KS}}<0.001$)} \\
 					\hline
-					Exponencial & $1.307$ & $0.191$ & No distinguibles \\
-					Poisson     & $3.824$ & $<0.001$ & Ley de potencias favorable \\
-					Yule        & $-8.943$ & $<0.001$ & Alternativa favorable \\
+					Exponencial & $1.307$ & \cellcolor{yellow!40}$0.191$ & No distinguibles \\
+					Poisson     & $3.824$ & \cellcolor{green!40}$<0.001$ & Ley de potencias favorable \\
+					Yule        & $-8.943$ & \cellcolor{red!40}$<0.001$ & Alternativa favorable \\
 					\hline
 				\end{tabular}
 			}
