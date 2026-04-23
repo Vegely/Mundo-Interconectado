@@ -112,15 +112,15 @@ ALPHA_IN  = 1.8999
 ALPHA_OUT = 2.5158
 XMIN_IN   = 3
 XMIN_OUT  = 11
-ALPHA_LO  = 1.5
-ALPHA_HI  = 2.4
+ALPHA_LO  = 1.2   # widened: allow shallower power-law tails
+ALPHA_HI  = 3.5   # widened: α_out=2.5158 was outside old ceiling of 2.4
 
 SEED_TRIALS = {
     "BA":          {"m": 5},
     "Bianconi_BB": {"m": 5},
     "Copying":     {"beta": 0.65, "m_init": 5},
     "SBM_PA":      {"k": 20, "alpha": ALPHA_IN, "m1": 3, "m2": 5},
-    "ERGM":        {"theta_mut": 2.0, "theta_out": 1.0, "theta_in": 1.0, "theta_tri": 0.0},
+    "ERGM":        {"theta_mut": -3.0, "theta_out": 1.0, "theta_in": 1.0, "theta_tri": 0.0},  # negative: suppresses mutual edges (PyPI recip≈0.01)
     "BTER":        {"alpha": ALPHA_IN, "density": 0.25},
     "Kronecker":   {"a": 0.72, "b": 0.18, "c": 0.18},
 }
@@ -141,7 +141,7 @@ LOSS_WEIGHTS = {
     "in_wasserstein":  1.0,   # W₁ on in-degree sequences
     "out_wasserstein": 1.0,   # W₁ on out-degree sequences
     "clustering":     10.0,   # |clust_synth - clust_real|  ×10 to balance scale
-    "reciprocity":    10.0,   # |recip_synth - recip_real|  ×10 to balance scale
+    "reciprocity":    0.1,   # |recip_synth - recip_real|  ×10 to balance scale
 }
 
 def _graphs_for_trial(trial_number: int, n_trials: int) -> int:
@@ -337,27 +337,27 @@ def optimize_model(args):
         nonlocal best_loss_seen
 
         if m_name == "BA":
-            params = {"m": trial.suggest_int("m", 1, 10)}
+            params = {"m": trial.suggest_int("m", 1, 25)}   # widened: avg_deg may exceed 10
         elif m_name == "Bianconi_BB":
-            params = {"m": trial.suggest_int("m", 1, 10)}
+            params = {"m": trial.suggest_int("m", 1, 25)}   # widened: same reasoning
         elif m_name == "Copying":
             params = {
-                "beta":   trial.suggest_float("beta",   0.1, 0.9),
-                "m_init": trial.suggest_int(  "m_init", 2,   10),
+                "beta":   trial.suggest_float("beta",   0.01, 0.99),   # widened: allow near-pure copying or near-pure preferential attachment
+                "m_init": trial.suggest_int(  "m_init", 2,   20),      # widened: m_init ceiling raised
             }
         elif m_name == "SBM_PA":
             params = {
-                "k":     trial.suggest_int(  "k",     5,        40),
+                "k":     trial.suggest_int(  "k",     2,        80),           # widened: more communities allowed
                 "alpha": trial.suggest_float("alpha", ALPHA_LO, ALPHA_HI),
-                "m1":    trial.suggest_int(  "m1",    1,        7),
-                "m2":    trial.suggest_int(  "m2",    2,        9),
+                "m1":    trial.suggest_int(  "m1",    1,        15),           # widened
+                "m2":    trial.suggest_int(  "m2",    1,        15),           # widened, also lowered floor to 1
             }
         elif m_name == "ERGM":
             params = {
-                "theta_mut":  trial.suggest_float("theta_mut",  -1.0, 5.0),
-                "theta_out":  trial.suggest_float("theta_out", -5.0, 3.0),
-                "theta_in":   trial.suggest_float("theta_in",  -5.0, 3.0),
-                "theta_tri":  trial.suggest_float("theta_tri", -1.0, 3.0),
+                "theta_mut":  trial.suggest_float("theta_mut",  -10.0, 5.0),  # widened neg: PyPI recip≈0.01 needs strong suppression
+                "theta_out":  trial.suggest_float("theta_out",  -10.0, 5.0),  # widened both sides
+                "theta_in":   trial.suggest_float("theta_in",   -10.0, 5.0),  # widened both sides
+                "theta_tri":  trial.suggest_float("theta_tri",   -5.0, 5.0),  # widened both sides
             }
         elif m_name == "BTER":
             params = {
@@ -366,9 +366,9 @@ def optimize_model(args):
             }
         elif m_name == "Kronecker":
             params = {
-                "a": trial.suggest_float("a", 0.4,  0.8),
-                "b": trial.suggest_float("b", 0.05, 0.3),
-                "c": trial.suggest_float("c", 0.05, 0.3),
+                "a": trial.suggest_float("a", 0.3,  0.95),   # widened: allow stronger diagonal dominance
+                "b": trial.suggest_float("b", 0.01, 0.5),    # widened: off-diagonal may need more range
+                "c": trial.suggest_float("c", 0.01, 0.5),    # widened: same
             }
 
         n_graphs = _graphs_for_trial(trial.number, n_trials)

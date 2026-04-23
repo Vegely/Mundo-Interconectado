@@ -2,58 +2,95 @@ Component Paper Why
 Wasserstein-1 on raw in/out degree sequencesRubner et al. (2000) IJCV; You et al. (2018) GraphRNN ICMLForces the optimizer to match the full distributional shape including the heavy tail
 KS statistic (logged, not in loss)Clauset, Shalizi & Newman (2009) SIAM ReviewSensitive to tail mismatches; useful diagnostic in the output JSON
 Absolute difference for clustering & reciprocityLeskovec et al. (2010) Kronecker Graphs JMLREliminates the 1/0.01 amplification entirely
+Windows PowerShell
+Copyright (C) Microsoft Corporation. Todos los derechos reservados.
 
+Instale la versión más reciente de PowerShell para obtener nuevas características y mejoras. https://aka.ms/PSWindows
+
+PS C:\Users\bogurad\Desktop\ProyectosgitHub\Mundo-Interconectado\grafos\Formation> python .\train.py
+=================================================================
+  PyPI Network: 7-Model Parallel Bayesian Optimizer  [v2]
+  Loss: W₁(in/out-deg) + 10·|Δclust| + 10·|Δrecip|
+=================================================================
+  Priors: α_in=1.8999 (p=0.532, not rejected) | α_out=2.5158 (p=0.000, rejected)
+  Alpha search range: [1.2, 3.5]
+[+] Loaded PyPI: 6765 nodes, 36054 edges | avg degree 5.3
+[+] Real stats: clust=0.0358  recip=0.0195
+[+] 300 trials/model | 20 QMC warm-up | adaptive eval budget | empirical seed trials
+[+] Running all 7 models in parallel — progress bars below:
+
+BA           : 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 300/300 [1:17:28<00:00, 15.50s/it, best=7.7615, done=✓]
+Bianconi_BB  : 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 300/300 [1:17:28<00:00, 15.50s/it, best=8.5887, done=✓]
+Copying      : 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 300/300 [1:17:28<00:00, 15.50s/it, best=7.5642, done=✓]
+SBM_PA       : 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 300/300 [1:17:28<00:00, 15.50s/it, best=6.7952, done=✓]
+ERGM         : 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 300/300 [1:17:28<00:00, 15.50s/it, best=10.6672, done=✓]
+BTER         : 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 300/300 [1:17:28<00:00, 15.50s/it, best=4.6154, done=✓]
+Kronecker    : 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 300/300 [1:17:28<00:00, 15.50s/it, best=9.9690, done=✓]
 
 =================================================================
-  PyPI Network: Final 8-Model Validation Suite
+  Final Results  (ranked by composite Wasserstein+|Δclust|+|Δrecip| loss)
 =================================================================
+  +------+----------------+------------+------------------------------------------------------+
+  | #    | Model          | Loss       | Best Params                                          |
+  +------+----------------+------------+------------------------------------------------------+
+  | 1    | BTER           | 4.61538    | {"alpha": 1.4571215614676474, "density": 0.01754882… |
+  | 2    | SBM_PA         | 6.79524    | {"k": 62, "alpha": 3.1446636486798525, "m1": 1, "m2… |
+  | 3    | Copying        | 7.56424    | {"beta": 0.7410806355066597, "m_init": 5}            |
+  | 4    | BA             | 7.76149    | {"m": 4}                                             |
+  | 5    | Bianconi_BB    | 8.58874    | {"m": 3}                                             |
+  | 6    | Kronecker      | 9.96899    | {"a": 0.9422460217960178, "b": 0.47144053811207415,… |
+  | 7    | ERGM           | 10.66716   | {"theta_mut": -1.9529762398451567, "theta_out": -4.… |
+  +------+----------------+------------+------------------------------------------------------+
+
+  Stats columns: [W₁_in, W₁_out, |Δclust|, |Δrecip|, KS_in, KS_out]
+  BTER          : W1_in=3.5265  W1_out=0.9167  |Δclust|=0.0166  |Δrecip|=0.0596  KS_in=0.1577  KS_out=0.1682
+  SBM_PA        : W1_in=2.7531  W1_out=3.6466  |Δclust|=0.0331  |Δrecip|=0.6468  KS_in=0.1862  KS_out=0.4132
+  Copying       : W1_in=1.2837  W1_out=5.9923  |Δclust|=0.0286  |Δrecip|=0.0189  KS_in=0.4327  KS_out=0.7039
+  BA            : W1_in=1.8718  W1_out=5.5823  |Δclust|=0.0305  |Δrecip|=0.0195  KS_in=0.5472  KS_out=0.6579
+  Bianconi_BB   : W1_in=2.9865  W1_out=5.2662  |Δclust|=0.0334  |Δrecip|=0.0192  KS_in=0.6756  KS_out=0.6089
+  Kronecker     : W1_in=4.8361  W1_out=4.8361  |Δclust|=0.0296  |Δrecip|=0.0127  KS_in=0.7658  KS_out=0.4587
+  ERGM          : W1_in=5.6307  W1_out=4.6925  |Δclust|=0.0342  |Δrecip|=0.0189  KS_in=0.6550  KS_out=0.5057
+
+[+] Best parameters saved → best_parameters.json
+[+] Convergence plot saved → training_progress.png
+PS C:\Users\bogurad\Desktop\ProyectosgitHub\Mundo-Interconectado\grafos\Formation> python .\test_models.py
+[+] Loading real graph...
+[+] Loading optimized parameters...
 
 [+] Running parallel validation (300 samples per model)...
-
-ER (Null)      : 100%|███████████████████████████████████████████████████████████████| 300/300 [03:41<00:00,  1.35it/s]
-BA (Null)      : 100%|███████████████████████████████████████████████████████████████| 300/300 [03:41<00:00,  1.35it/s]
-Bianconi_BB    : 100%|███████████████████████████████████████████████████████████████| 300/300 [03:41<00:00,  1.35it/s]
-Copying        : 100%|███████████████████████████████████████████████████████████████| 300/300 [03:41<00:00,  1.35it/s]
-SBM_PA         : 100%|███████████████████████████████████████████████████████████████| 300/300 [03:41<00:00,  1.35it/s]
-ERGM           : 100%|███████████████████████████████████████████████████████████████| 300/300 [03:41<00:00,  1.35it/s]
-BTER           : 100%|███████████████████████████████████████████████████████████████| 300/300 [03:41<00:00,  1.35it/s]
-Kronecker      : 100%|███████████████████████████████████████████████████████████████| 300/300 [03:41<00:00,  1.35it/s]
-
+ER (Null)     : 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 300/300 [00:03<00:00, 95.37it/s]
+BA (Null)     : 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 300/300 [00:02<00:00, 101.95it/s]
+Bianconi_BB   : 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 300/300 [00:19<00:00, 15.59it/s]
+Copying       : 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 300/300 [00:07<00:00, 42.50it/s]
+SBM_PA        : 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 300/300 [01:40<00:00,  2.99it/s]
+ERGM          : 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 300/300 [01:31<00:00,  3.27it/s]
+BTER          : 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 300/300 [00:04<00:00, 61.50it/s]
+Kronecker     : 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 300/300 [00:03<00:00, 80.84it/s]
 
 [+] Valid samples per model:
-    ER (Null)       300/300
-    BA (Null)       300/300
-    Bianconi_BB     300/300
-    Copying         300/300
-    SBM_PA          300/300
-    ERGM            300/300
-    BTER            300/300
-    Kronecker       300/300
+    ER (Null)      300/300
+    BA (Null)      300/300
+    Bianconi_BB    300/300
+    Copying        300/300
+    SBM_PA         300/300
+    ERGM           300/300
+    BTER           300/300
+    Kronecker      300/300
 
-[+] Final P-Value Results:
----------------------------------------------------------------------------
- ER (Null)       | Clust: 0.007* | In-Ent: 0.007* | Out-Ent: 0.007* | Recip: 0.007*
- BA (Null)       | Clust: 0.007* | In-Ent: 0.266  | Out-Ent: 0.007* | Recip: 0.007*
- Bianconi_BB     | Clust: 0.007* | In-Ent: 0.007* | Out-Ent: 0.007* | Recip: 0.007*
- Copying         | Clust: 0.007* | In-Ent: 0.007* | Out-Ent: 0.007* | Recip: 0.007*
- SBM_PA          | Clust: 0.007* | In-Ent: 0.007* | Out-Ent: 0.007* | Recip: 0.007*
- ERGM            | Clust: 0.007* | In-Ent: 0.007* | Out-Ent: 0.007* | Recip: 0.007*
- BTER            | Clust: 0.007* | In-Ent: 0.007* | Out-Ent: 0.113  | Recip: 0.007*
- Kronecker       | Clust: 0.007* | In-Ent: 0.007* | Out-Ent: 0.007* | Recip: 0.007*
-  (* = rejected at α=0.05)
+[+] Final P-Value Results (Using Intuitive Mechanics Metrics):
+-------------------------------------------------------------------------------------
+ ER (Null)      | Clust: 0.013* | Max Hub: 0.013* | Assort: 0.007* | Recip: 0.013*
+ BA (Null)      | Clust: 0.013* | Max Hub: 0.206  | Assort: 0.007* | Recip: 0.013*
+ Bianconi_BB    | Clust: 0.013* | Max Hub: 0.073  | Assort: 0.007* | Recip: 0.013*
+ Copying        | Clust: 0.013* | Max Hub: 0.691  | Assort: 0.007* | Recip: 0.013*
+ SBM_PA         | Clust: 0.013* | Max Hub: 0.013* | Assort: 0.007* | Recip: 0.007*
+ ERGM           | Clust: 0.013* | Max Hub: 0.013* | Assort: 0.007* | Recip: 0.013*
+ BTER           | Clust: 0.007* | Max Hub: 0.013* | Assort: 0.007* | Recip: 0.007*
+ Kronecker      | Clust: 0.013* | Max Hub: 0.013* | Assort: 0.007* | Recip: 0.013*
 
 [+] Plotting 32-Panel Master Grid...
 [+] Saved final_8model_master_grid.png!
 
 [+] Plotting Individual 6-Panel Summaries...
-    -> ER (Null)...
-    -> BA (Null)...
-    -> Bianconi_BB...
-    -> Copying...
-    -> SBM_PA...
-    -> ERGM...
-    -> BTER...
-    -> Kronecker...
-
-[+] All individual model plots saved successfully!
-PS C:\Users\bogurad\Desktop\ProyectosgitHub\Mundo-Interconectado\grafos\Formation\NewUntested>
+[+] All done!
+PS C:\Users\bogurad\Desktop\ProyectosgitHub\Mundo-Interconectado\grafos\Formation>
