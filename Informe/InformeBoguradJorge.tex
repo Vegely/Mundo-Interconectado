@@ -751,7 +751,23 @@ De esta manera se puede ver como queda el resultado de aplicar el algoritmo tal 
 		\item Identificador y tamaño del ciclo al que pertenece, o indicación de que el nodo no forma parte de ninguno.
 		\item Identificador de la comunidad Louvain a la que pertenece el nodo.
 	\end{itemize}
+	
 	\chapter{Conclusiones}
+	A continuación, se exponen las conclusiones del estudio:
+	
+	\begin{itemize}
+		\item \textbf{Construcción de la red}: la red se construye por \textit{web scrapping} a partir de la API de PyPI. Debido a la falta de preprocesamiento, algunas dependencias aparecen repetidas o con nombres erróneos.
+		
+		\item \textbf{Topología de la red}: la componente gigante abarca la totalidad de la red. Esta se organiza en grupos de dependencias que se interconectan entre sí a través de hubs. Existe un bucle que abarca aproximadamente la mitad de la red debido a que se han tenido en cuenta tanto las dependencias de producción como las de testeo y validación.
+		
+		\item \textbf{Distribución de grado}: el grado de entrada sigue una ley de potencias, conforme a la idea de que los paquetes populares cada vez se van a incluir más en los nuevos programas. Por su parte, el grado de salida no sigue una ley de potencias debido a que las dependencias de los nodos existentes tienden a mantenerse invariantes independientemente del crecimiento de la red.
+		
+		\item \textbf{Análisis de centralidad}: \texttt{typing-extensions}, \texttt{pytest} y \texttt{numpy} son los paquetes más importantes de acuerdo al PageRank, mientras que \texttt{pandas} los es en términos de centralidad de intermediación. Se pone de manifiesto que las librerías de tipos y testeo de código son fundamentales para el correcto funcionamiento del resto de dependencias. Además, el manejo de datos tabulares resulta de gran interés en esta red.
+		
+		\item \textbf{Organización en comunidades}: el algoritmo de Louvain identifica comunidades relacionadas con entornos tecnológicos concretos. Entre otros: aprendizaje automático e inteligencia artificial, entorno AWS, desarrollo de APIs y servicios web...
+		
+		\item \textbf{Visualización}: el uso de \texttt{vispy} y la aceleración por GPU permite explorar redes de gran tamaño con un rendimiento superior a otros programas como Gephi. La herramienta desarrollada es útil para la identificación visual de anomalías, comunidades o nodos con una alta centralidad.
+	\end{itemize}
 	
 	% ── Bibliografía ─────────────────────────────────────────────────────────────
 	\bibliography{referencias}   % n
