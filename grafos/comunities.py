@@ -33,7 +33,6 @@ def detect_communities(g):
         label = g.vs[i][attr] if attr else f"pkg_{i}"
         communities[c_id].append(label)
 
-    # Keep igraph's original 0-based ordering so IDs match the visualizer
     return sorted(communities.items())
 
 

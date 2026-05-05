@@ -16,20 +16,20 @@
 \contentsline {section}{\numberline {2.2}Análisis de centralidad}{15}{section.2.2}%
 \contentsline {subsection}{\numberline {2.2.1}PageRank}{16}{subsection.2.2.1}%
 \contentsline {subsection}{\numberline {2.2.2}Centralidad de Intermediación}{18}{subsection.2.2.2}%
-\contentsline {subsection}{\numberline {2.2.3}Centralidad de Cercania}{20}{subsection.2.2.3}%
-\contentsline {subsection}{\numberline {2.2.4}Distribuciones de Centralidad}{22}{subsection.2.2.4}%
+\contentsline {subsection}{\numberline {2.2.3}Centralidad de Cercania}{19}{subsection.2.2.3}%
+\contentsline {subsection}{\numberline {2.2.4}Distribuciones de Centralidad}{21}{subsection.2.2.4}%
 \contentsline {subsubsection}{PageRank}{22}{section*.6}%
-\contentsline {subsubsection}{Centralidad de Intermediación}{23}{section*.7}%
-\contentsline {subsubsection}{Centralidad de Cercanía}{23}{section*.8}%
-\contentsline {section}{\numberline {2.3}Análisis de comunidades}{23}{section.2.3}%
-\contentsline {chapter}{\numberline {3}Herramienta de visualización de la red}{30}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Arquitectura general}{30}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Cálculos preliminares}{30}{section.3.2}%
-\contentsline {section}{\numberline {3.3}Motor de físicas}{31}{section.3.3}%
-\contentsline {section}{\numberline {3.4}Métricas y modos de color}{33}{section.3.4}%
-\contentsline {section}{\numberline {3.5}Modo de visualización de ciclos}{34}{section.3.5}%
-\contentsline {section}{\numberline {3.6}Inversión de colores}{34}{section.3.6}%
-\contentsline {section}{\numberline {3.7}Interacción}{34}{section.3.7}%
-\contentsline {subsection}{\numberline {3.7.1}Controles de teclado}{34}{subsection.3.7.1}%
-\contentsline {subsection}{\numberline {3.7.2}Inspección de nodos}{35}{subsection.3.7.2}%
-\contentsline {chapter}{\numberline {4}Conclusiones}{36}{chapter.4}%
+\contentsline {subsubsection}{Centralidad de Intermediación}{22}{section*.7}%
+\contentsline {subsubsection}{Centralidad de Cercanía}{22}{section*.8}%
+\contentsline {section}{\numberline {2.3}Análisis de comunidades}{22}{section.2.3}%
+\contentsline {chapter}{\numberline {3}Herramienta de visualización de la red}{29}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Arquitectura general}{29}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Cálculos preliminares}{29}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Motor de físicas}{30}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Métricas y modos de color}{32}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Modo de visualización de ciclos}{33}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Inversión de colores}{33}{section.3.6}%
+\contentsline {section}{\numberline {3.7}Interacción}{33}{section.3.7}%
+\contentsline {subsection}{\numberline {3.7.1}Controles de teclado}{33}{subsection.3.7.1}%
+\contentsline {subsection}{\numberline {3.7.2}Inspección de nodos}{34}{subsection.3.7.2}%
+\contentsline {chapter}{\numberline {4}Conclusiones}{35}{chapter.4}%

@@ -164,7 +164,6 @@ def plot_distributions(centralities: dict, out_dir: Path) -> None:
                 ax.hist(data, bins=40, color=color, alpha=0.75,
                         edgecolor="white", linewidth=0.4, density=True)
 
-            # --- Estética ---
             ax.set_axisbelow(True)
             ax.yaxis.grid(True, color=GRID_COLOR, linewidth=0.6, linestyle="--")
             ax.xaxis.grid(cfg["scale"] == "log", color=GRID_COLOR, linewidth=0.6, linestyle="--")

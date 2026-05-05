@@ -434,7 +434,7 @@
 	\end{table}
 
 	\section{Análisis de centralidad}
-	Una vez realizado el análisis preliminar de la red se estudian las propiedades de centralidad de la misma para ver qué paquetes son los más importantes dentro de la red de dependencias de Python. Para realizar este estudio se estudian las tres magnitudes estudiadas en clase: PageRank, Centralidad de Intermediación y Centralidad de Cercania mediante el script \texttt{centrality.py}. Estos nodos son 
+	Una vez realizado el análisis preliminar de la red se estudian las propiedades de centralidad de la misma para ver qué paquetes son los más importantes dentro de la red de dependencias de Python. Para realizar este estudio se estudian las tres magnitudes estudiadas en clase: PageRank, Centralidad de Intermediación y Centralidad de Cercania mediante el script \texttt{centrality.py}. 
 	
 	
 
@@ -470,8 +470,7 @@
 	\newline
 	
 	Finalmente, resulta llamativo encontrar en la quinta posición a \texttt{pyobjc-core}, una librería exclusiva para la integración con sistemas operativos macOS. Dado que el ecosistema de desarrollo en Python está fuertemente dominado por entornos Linux y Windows, la cuota de mercado de macOS no justificaría por sí sola una centralidad tan elevada. Sin embargo, esta anomalía ilustra perfectamente la naturaleza de las dependencias condicionales en proyectos multiplataforma. Grandes paquetes de automatización o interfaces gráficas incluyen a \texttt{pyobjc-core} como dependencia oculta, instalándose automáticamente solo cuando el código se ejecuta en un entorno de Apple. Así, la librería acumula un \textit{PageRank} masivo de forma pasiva.
-	
-	Por último, es relevante destacar como en el top 5 aparece el paquete \texttt{pyobjc-core} que es un paquete exclusivo para la integración con sistemas operativos macOS. Dado que la mayoría del desarrollo en Python está fuertemente dominado por entornos Linux y Windows, la cuota de mercado de macOS no justificaría por sí sola una centralidad tan elevada. No obstante, esta anomalía evidencia la naturaleza de las dependencias condicionales en proyectos multiplataforma que descargan este paquete solo cuando el código se ejecuta en entornos de Apple.
+
 	
 	\subsection{Centralidad de Intermediación}
 	
